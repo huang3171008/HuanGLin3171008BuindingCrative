@@ -1,5 +1,5 @@
 const MOVE = ['rock','scissors','paper'];
-const NAMES = ['小狐狸','小熊','小兔子','小熊猫'];
+const NAMES = ['小狐狸','小熊','小兔子','小熊猫','机器人','外星人','宇航员','魔法师','小猫','画家'];
 const wins = (a,b) => a === b ? 0 : ({rock:'scissors',scissors:'paper',paper:'rock'}[a] === b ? 1 : -1);
 const err = message => { throw new Error(message); };
 const integer = n => Number.isSafeInteger(n);
@@ -25,18 +25,19 @@ function finishNormal(world,r){
 function settleNormal(world,r){
  const [a,b]=r.players, outcome=wins(a.move,b.move);let changes=[];
  for(let i=0;i<2;i++){let p=r.players[i],delta= -p.tier + (i===0?outcome:-outcome)*p.stake*(p.tier/10);world.players[p.id].wallet+=delta;p.net+=delta;changes.push(delta);}
- r.last={round:r.round,moves:[a.move,b.move],outcome,changes};
+ r.last={round:r.round,moves:[a.move,b.move],outcome,changes,fees:[a.tier,b.tier],stakes:[a.stake,b.stake]};
  for(const p of r.players){p.move=null;p.tier=null;p.stake=null;}
  if(r.round===10)finishNormal(world,r);else r.round++;
 }
 function settleBet(world,r){
  const [a,b]=r.players, outcome=wins(a.move,b.move),changes=outcome===0?[0,0]:[outcome*2*a.stake,-outcome*2*b.stake];
+ const handChanges=[...changes];
  let correct;
  if(r.mode==='guessMove')correct=[a.guess===b.move,b.guess===a.move];
  else correct=outcome===0?null:[a.guess===(outcome===1?'win':'lose'),b.guess===(outcome===-1?'win':'lose')];
  if(correct){if(correct[0]!==correct[1]){const win=correct[0]?0:1,lose=1-win;changes[win]+=r.players[lose].stake;changes[lose]-=r.players[lose].stake;}else{changes[0]-=a.stake;changes[1]-=b.stake;}}
  for(let i=0;i<2;i++){world.players[r.players[i].id].wallet+=changes[i];r.players[i].net+=changes[i];}
- r.last={round:1,moves:[a.move,b.move],outcome,guesses:[a.guess,b.guess],correct,stakes:[a.stake,b.stake],changes};r.phase='finished';
+ r.last={round:1,moves:[a.move,b.move],outcome,guesses:[a.guess,b.guess],correct,stakes:[a.stake,b.stake],handChanges,guessChanges:changes.map((v,i)=>v-handChanges[i]),changes};r.phase='finished';
 }
 function mutate(world,id,body,now){
  clean(world,now);let me=world.players[id];if(!me)me=world.players[id]={wallet:5000,character:0,room:null,seen:now};me.seen=now;
@@ -54,6 +55,7 @@ function mutate(world,id,body,now){
  }
  const r=world.rooms[me.room];if(!r||r.players.length!==2)err('请等待另一位玩家加入');const p=r.players.find(x=>x.id===id);if(!p)err('你不在这个房间中');
  if(action==='move'){
+  if(body.round!==undefined&&body.round!==r.round)err('回合已变化，请重新选择');
   if(r.phase!=='move'||p.move)err('本回合已经出拳');if(!MOVE.includes(body.move))err('请选择手势');const stake=Number(body.stake);if(!integer(stake)||stake<1)err('请输入有效投入金币');
   if(r.mode==='normal'){const tier=Number(body.tier);if(![10,20,30].includes(tier))err('请选择入场费');if(tier===30&&p.high>=2)err('30 金币场次每把最多选择两次');const remaining=10-r.round;const max=Math.floor((me.wallet-tier-remaining*10)/(tier/10));if(stake>max)err('投入过高，请保留后续回合的最低入场费');p.tier=tier;if(tier===30)p.high++;}
   else {if(![10,20,50,100].includes(stake))err('请选择竞猜投入');if(me.wallet<stake*3)err('金币不足，需至少准备投入额的 3 倍');}
@@ -61,6 +63,7 @@ function mutate(world,id,body,now){
   if(r.players.every(x=>x.move)){if(r.mode==='normal')settleNormal(world,r);else r.phase='guess';}return;
  }
  if(action==='guess'){
+  if(body.round!==undefined&&body.round!==r.round)err('回合已变化，请重新选择');
   if(r.phase!=='guess'||p.guess)err('现在不能竞猜');const choices=r.mode==='guessMove'?MOVE:['win','lose'];if(!choices.includes(body.guess))err('请选择竞猜结果');p.guess=body.guess;r.updated=now;if(r.players.every(x=>x.guess))settleBet(world,r);return;
  }
  err('无效操作');

@@ -34,12 +34,14 @@ public final class MainActivity extends Activity {
     private SharedPreferences prefs;
     private String server;
     private final LanBridge lanBridge = new LanBridge();
+    private AudioBridge audioBridge;
     private boolean localMode = true;
     private static final String LOCAL_HOST = "appassets.androidplatform.net";
     private int dp(float value) { return (int)(value * getResources().getDisplayMetrics().density + .5f); }
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        audioBridge = new AudioBridge(this);
         getWindow().setStatusBarColor(Color.rgb(57, 42, 77));
         getWindow().setNavigationBarColor(Color.rgb(57, 42, 77));
         prefs = getSharedPreferences("guessing", MODE_PRIVATE);
@@ -88,8 +90,11 @@ public final class MainActivity extends Activity {
                 Uri u=request.getUrl();if (!"https".equalsIgnoreCase(u.getScheme()) || !LOCAL_HOST.equalsIgnoreCase(u.getHost())) return null;
                 String path=u.getPath();String asset=null;String mime="text/plain";
                 if ("/index.html".equals(path)) {asset="index.html";mime="text/html";}
-                else if (path!=null && path.matches("/assets/(engine|p2p)\\.js")) {asset=path.substring(1);mime="application/javascript";}
-                else if (path!=null && path.matches("/assets/(1F98A|1F43B|1F430|1F43C)\\.svg")) {asset=path.substring(1);mime="image/svg+xml";}
+                else if (path!=null && path.matches("/assets/(engine|p2p|enhance)\\.js")) {asset=path.substring(1);mime="application/javascript";}
+                else if (path!=null && path.matches("/assets/[0-9A-F]+(?:-200D-[0-9A-F]+)*\\.svg")) {asset=path.substring(1);mime="image/svg+xml";}
+                else if (path!=null && path.matches("/assets/enhance\\.css")) {asset=path.substring(1);mime="text/css";}
+                else if (path!=null && path.matches("/assets/themes/(clouds|marble)\\.jpg")) {asset=path.substring(1);mime="image/jpeg";}
+                else if (path!=null && path.matches("/assets/music/(overworld|happy-loop)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
                 if(asset!=null) try {return new WebResourceResponse(mime,"UTF-8",getAssets().open(asset));} catch(Exception ignored) {}
                 return new WebResourceResponse("text/plain","UTF-8",404,"Not Found",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));
             }
@@ -126,8 +131,8 @@ public final class MainActivity extends Activity {
         return box;
     }
     private void openHome() { openLocal(); }
-    private void openLocal() { lanBridge.stop();localMode=true;web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
-    private void openServer() { lanBridge.stop();localMode=false;web.stopLoading();web.removeJavascriptInterface("LanBridge");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
+    private void openLocal() { lanBridge.stop();localMode=true;web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
+    private void openServer() { lanBridge.stop();localMode=false;web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
     private void showModeDialog() { new AlertDialog.Builder(this).setTitle("选择游戏模式").setItems(new String[]{"手机直连（局域网 / 不同网络）","原服务器模式"}, (d,which)->{if(which==0)openLocal();else showServerDialog();}).setNegativeButton("取消",null).show(); }
     private boolean handleLink(Uri uri) {
         if (localMode) { if ("https".equalsIgnoreCase(uri.getScheme()) && LOCAL_HOST.equalsIgnoreCase(uri.getHost())) return false; if ("https".equalsIgnoreCase(uri.getScheme())) { try { startActivity(new Intent(Intent.ACTION_VIEW,uri)); } catch(Exception ignored) {} } return true; }
@@ -160,6 +165,6 @@ public final class MainActivity extends Activity {
         dialog.show();
     }
     @Override public void onBackPressed() { if (errorView.getVisibility() == View.VISIBLE) { showModeDialog(); } else if (web.canGoBack()) web.goBack(); else super.onBackPressed(); }
-    @Override protected void onDestroy() { lanBridge.stop(); if (web != null) { web.destroy(); web = null; } super.onDestroy(); }
+    @Override protected void onDestroy() { lanBridge.stop();audioBridge.stop(); if (web != null) { web.destroy(); web = null; } super.onDestroy(); }
 }
 

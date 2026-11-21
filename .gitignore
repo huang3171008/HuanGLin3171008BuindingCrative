@@ -30,3 +30,22 @@ password.txt
 # System files
 .DS_Store
 Thumbs.db
+
+# Desktop dependencies and build output
+desktop/node_modules/
+desktop/app-assets/
+desktop/release/
+
+# iOS generated resources and local build state
+ios/GuessingArena/web/
+ios/build/
+ios/DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Licensed binary resources are obtained by prepare-assets.mjs
+android/assets/assets/themes/*.jpg
+android/assets/assets/music/*.mp3
+# 二进制素材和构建临时文件
+node_modules/
+*.apk

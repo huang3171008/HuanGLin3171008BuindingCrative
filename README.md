@@ -38,3 +38,14 @@ node check.mjs
 ## 许可
 
 本项目代码按 [MIT License](LICENSE) 发布。角色图片属于 [OpenMoji](https://openmoji.org/)，采用 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)；详见 [第三方素材说明](THIRD_PARTY_NOTICES.md)。
+
+## 多端升级
+
+- Android：局域网和不同网络直连、金币流水、10 个角色、四种主题及两段可选音乐。
+- Windows：`desktop/` 为独立桌面客户端，可与同版本安卓客户端连接。
+- iPhone / iPad：`ios/` 为 Xcode 工程；本项目在 Windows 上开发，苹果工程尚未使用 Xcode 或实体设备验证。
+- 连接信息使用 `GUESS2` 协议，与早期版本不兼容，请双方升级。
+
+直连模式的金币变化记录在本机；服务器页面也有本浏览器的金币流水和玩法教程，两种模式的数据分开。画面和音乐设置目前用于直连版。清除应用数据会丢失本机金币和记录。
+
+游戏界面内可点击“玩法教程”查看三种模式；更详细的安装和联机步骤见 [使用教程](使用教程.md)。
