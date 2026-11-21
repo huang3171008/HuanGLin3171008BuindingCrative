@@ -11,6 +11,9 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceResponse;
+import java.io.ByteArrayInputStream;
 import android.webkit.WebChromeClient;
 import android.webkit.JsResult;
 import android.webkit.WebResourceError;
@@ -30,6 +33,9 @@ public final class MainActivity extends Activity {
     private View errorView;
     private SharedPreferences prefs;
     private String server;
+    private final LanBridge lanBridge = new LanBridge();
+    private boolean localMode = true;
+    private static final String LOCAL_HOST = "appassets.androidplatform.net";
     private int dp(float value) { return (int)(value * getResources().getDisplayMetrics().density + .5f); }
 
     @Override public void onCreate(Bundle state) {
@@ -56,8 +62,8 @@ public final class MainActivity extends Activity {
         home.setOnClickListener(v -> openHome());
         bar.addView(home);
         Button settings = new Button(this);
-        settings.setText("服务器"); settings.setAllCaps(false);
-        settings.setOnClickListener(v -> showServerDialog());
+        settings.setText("模式"); settings.setAllCaps(false);
+        settings.setOnClickListener(v -> showModeDialog());
         bar.addView(settings);
         root.addView(bar);
         FrameLayout content = new FrameLayout(this);
@@ -78,6 +84,15 @@ public final class MainActivity extends Activity {
             }
         });
         web.setWebViewClient(new WebViewClient() {
+            @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                Uri u=request.getUrl();if (!"https".equalsIgnoreCase(u.getScheme()) || !LOCAL_HOST.equalsIgnoreCase(u.getHost())) return null;
+                String path=u.getPath();String asset=null;String mime="text/plain";
+                if ("/index.html".equals(path)) {asset="index.html";mime="text/html";}
+                else if (path!=null && path.matches("/assets/(engine|p2p)\\.js")) {asset=path.substring(1);mime="application/javascript";}
+                else if (path!=null && path.matches("/assets/(1F98A|1F43B|1F430|1F43C)\\.svg")) {asset=path.substring(1);mime="image/svg+xml";}
+                if(asset!=null) try {return new WebResourceResponse(mime,"UTF-8",getAssets().open(asset));} catch(Exception ignored) {}
+                return new WebResourceResponse("text/plain","UTF-8",404,"Not Found",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));
+            }
             @Override public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) { errorView.setVisibility(View.GONE); }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) { if(request.isForMainFrame()) errorView.setVisibility(View.VISIBLE); }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) { return handleLink(request.getUrl()); }
@@ -107,11 +122,15 @@ public final class MainActivity extends Activity {
         detail.setTextSize(15); detail.setTextColor(Color.rgb(110, 90, 118)); detail.setGravity(Gravity.CENTER); detail.setPadding(0,dp(14),0,dp(18));
         box.addView(detail);
         Button retry = new Button(this); retry.setText("重新连接"); retry.setOnClickListener(v -> openHome()); box.addView(retry);
-        Button edit = new Button(this); edit.setText("设置服务器地址"); edit.setOnClickListener(v -> showServerDialog()); box.addView(edit);
+        Button edit = new Button(this); edit.setText("设置服务器地址"); edit.setOnClickListener(v -> showModeDialog()); box.addView(edit);
         return box;
     }
-    private void openHome() { errorView.setVisibility(View.GONE); web.loadUrl(server + "/"); }
+    private void openHome() { openLocal(); }
+    private void openLocal() { lanBridge.stop();localMode=true;web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
+    private void openServer() { lanBridge.stop();localMode=false;web.stopLoading();web.removeJavascriptInterface("LanBridge");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
+    private void showModeDialog() { new AlertDialog.Builder(this).setTitle("选择游戏模式").setItems(new String[]{"手机直连（局域网 / 不同网络）","原服务器模式"}, (d,which)->{if(which==0)openLocal();else showServerDialog();}).setNegativeButton("取消",null).show(); }
     private boolean handleLink(Uri uri) {
+        if (localMode) { if ("https".equalsIgnoreCase(uri.getScheme()) && LOCAL_HOST.equalsIgnoreCase(uri.getHost())) return false; if ("https".equalsIgnoreCase(uri.getScheme())) { try { startActivity(new Intent(Intent.ACTION_VIEW,uri)); } catch(Exception ignored) {} } return true; }
         Uri allowed = Uri.parse(server);
         if ("https".equalsIgnoreCase(uri.getScheme()) && allowed.getHost().equalsIgnoreCase(uri.getHost()) && allowed.getPort() == uri.getPort()) return false;
         if ("https".equalsIgnoreCase(uri.getScheme())) { try { startActivity(new Intent(Intent.ACTION_VIEW, uri)); } catch (Exception ignored) {} }
@@ -136,11 +155,11 @@ public final class MainActivity extends Activity {
             String host = uri.getHost().toLowerCase(java.util.Locale.ROOT);
             String next = "https://" + host + (uri.getPort() == -1 ? "" : ":" + uri.getPort());
             if (!next.equals(server)) web.clearHistory();
-            server = next; prefs.edit().putString("server", server).apply(); dialog.dismiss(); openHome();
+            server = next; prefs.edit().putString("server", server).apply(); dialog.dismiss(); openServer();
         }));
         dialog.show();
     }
-    @Override public void onBackPressed() { if (errorView.getVisibility() == View.VISIBLE) { showServerDialog(); } else if (web.canGoBack()) web.goBack(); else super.onBackPressed(); }
-    @Override protected void onDestroy() { if (web != null) { web.destroy(); web = null; } super.onDestroy(); }
+    @Override public void onBackPressed() { if (errorView.getVisibility() == View.VISIBLE) { showModeDialog(); } else if (web.canGoBack()) web.goBack(); else super.onBackPressed(); }
+    @Override protected void onDestroy() { lanBridge.stop(); if (web != null) { web.destroy(); web = null; } super.onDestroy(); }
 }
 

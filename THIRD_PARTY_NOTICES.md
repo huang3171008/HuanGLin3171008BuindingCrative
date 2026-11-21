@@ -1,6 +1,6 @@
 # 第三方素材
 
-`game/src/assets/` 中的狐狸、小熊、兔子和熊猫图片由 **OpenMoji — the open-source emoji and icon project** 设计。
+`game/src/assets/` 和 `android/assets/assets/` 中的狐狸、小熊、兔子和熊猫图片由 **OpenMoji — the open-source emoji and icon project** 设计。
 
 - 项目：https://openmoji.org/
 - 原始素材：https://github.com/hfg-gmuend/openmoji/tree/master/color/svg
