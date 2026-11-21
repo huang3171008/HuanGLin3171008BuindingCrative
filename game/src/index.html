@@ -44,12 +44,13 @@ function showLedger(){const history=readHistory().slice().reverse();let html='<p
 function showRules(){showModal('玩法教程',`
 <p>选择下方项目查看。直连模式的金币只用于游戏。</p>
 <div class="rule-list">
-<details open><summary>基础规则</summary><div><p>✊ 石头赢剪刀，✌️ 剪刀赢布，✋ 布赢石头；相同手势为平局。</p><p>双方先秘密选择，完成后再公布。房主选择游戏模式，对方自动加入。</p></div></details>
+<details open><summary>基础规则</summary><div><p>✊ 石头赢剪刀，✌️ 剪刀赢布，✋ 布赢石头；相同手势为平局。</p><p>双方先秘密选择，完成后再公布。房主创建房间，另一位玩家输入房间码加入。</p></div></details>
 <details><summary>普通模式 · 10 回合</summary><div><p>每回合双方各自选择入场费、投入金币和手势，彼此的投入可以不同。</p><ul><li>10 金币入场费：1 倍</li><li>20 金币入场费：2 倍</li><li>30 金币入场费：3 倍，每把最多两次</li></ul><p>双方出拳后扣除入场费；获胜增加“自己的投入 × 倍率”，落败扣除相同金额。平局仍扣入场费。</p><p class="rule-example">例：选择 20 金币场、投入 25，获胜得 50，扣除入场费 20，本回合净增加 30。</p><p>投入时需保留后续回合的最低入场费。</p></div></details>
 <details><summary>普通模式 · 最终结算</summary><div><p>10 回合结束后比较各自净收益，净收益包含入场费：</p><ul><li>双方均不为负且不相等：较高者获得较低者净收益的一半，较低者扣除相应金币，小数向下取整。</li><li>一正一负：正收益者额外获得自身净收益；负收益已在回合中扣除。</li><li>双方均为负或净收益相同：没有额外奖励。</li></ul><p class="rule-example">例：甲净收益 +100，乙 +40；额外结算为甲 +20、乙 -20。</p></div></details>
 <details><summary>竞猜手势 · 1 回合</summary><div><p>双方选择 10、20、50 或 100 金币投入，秘密出拳后猜对方的手势。双方完成后先公布手势，再揭晓竞猜。</p><p>手势获胜或落败分别增加或扣除各自投入的两倍；手势平局不变。只有一人猜对时，猜对者获得对方的竞猜投入；双方都猜对或都猜错，各自的竞猜投入归系统。</p><p class="rule-example">例：甲投入 10 出石头，乙投入 20 出剪刀，只有甲猜对。手势部分甲 +20、乙 -40；竞猜部分甲 +20、乙 -20；合计甲 +40、乙 -60。</p><p>需至少准备投入额的 3 倍金币，以覆盖可能损失。</p></div></details>
 <details><summary>竞猜输赢 · 1 回合</summary><div><p>流程与竞猜手势相同，但猜的是“自己的手势会赢还是输”。手势胜负和竞猜投入按同样规则结算。</p><p>如果双方手势平局，手势部分不变，竞猜投入退还。</p></div></details>
-<details><summary>金币记录与保存</summary><div><p>点击屏幕上方的金币余额，可查看更新后每回合的入场费、胜负、竞猜和额外结算。记录保存在本浏览器，服务器钱包与直连钱包分开。</p><p>卸载应用或清除数据可能丢失本地金币。房主负责直连结算，不能防止修改客户端；结算时断网也可能导致两端记录不一致。</p></div></details>
+<details><summary>金币记录与保存</summary><div><p>点击屏幕上方的金币余额，可查看更新后每回合的入场费、胜负、竞猜和额外结算。记录保存在本浏览器，服务器钱包与直连钱包分开。</p><p>清除浏览器数据可能丢失钱包身份和本地记录。服务器负责结算；结算时断网可能导致本地记录不完整。</p></div></details>
 <details><summary>如何联机</summary><div><p>服务器模式：房主创建房间并分享房间码，对方连接同一服务器后加入。</p><p>服务器必须能被双方访问。</p></div></details>
 </div>`)}
 (function(){const h=document.querySelector('.heading');const b=document.createElement('button');b.className='rules-button';b.textContent='？ 玩法教程';b.onclick=showRules;h.appendChild(b);const w=document.querySelector('.wallet');w.setAttribute('role','button');w.setAttribute('tabindex','0');w.setAttribute('aria-label','查看金币变化记录');w.style.cursor='pointer';w.onclick=showLedger;w.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showLedger()}}})();</script></body></html>
+
