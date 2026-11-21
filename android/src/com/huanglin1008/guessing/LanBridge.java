@@ -17,10 +17,11 @@ public final class LanBridge {
     private static String json(String key, String value) { return "{\""+key+"\":\""+value.replace("\\","\\\\").replace("\"","\\\"").replace("\n","\\n").replace("\r","\\r")+"\"}"; }
     private static String readLine(BufferedReader in) throws IOException { StringBuilder s=new StringBuilder(); for(int c;(c=in.read())!=-1;){if(c=='\n')return s.toString();if(c!='\r')s.append((char)c);if(s.length()>MAX_LINE)throw new IOException("数据过长");}throw new EOFException(); }
     private static String privateIp() throws SocketException {
-        String fallback=null;Enumeration<NetworkInterface> list=NetworkInterface.getNetworkInterfaces();
+        String best=null;int bestScore=0;Enumeration<NetworkInterface> list=NetworkInterface.getNetworkInterfaces();
         while(list.hasMoreElements()){NetworkInterface n=list.nextElement();String name=n.getName().toLowerCase(Locale.ROOT);if(!n.isUp()||n.isLoopback()||name.startsWith("tun")||name.startsWith("rmnet")||name.startsWith("pdp"))continue;
-            Enumeration<InetAddress> addresses=n.getInetAddresses();while(addresses.hasMoreElements()){InetAddress a=addresses.nextElement();if(!(a instanceof Inet4Address)||!a.isSiteLocalAddress())continue;String ip=a.getHostAddress();if(name.contains("wlan")||name.contains("wifi")||name.startsWith("ap")||name.contains("swlan"))return ip;if(fallback==null)fallback=ip;}}
-        return fallback;
+            int score=(name.startsWith("ap")||name.contains("swlan"))?3:(name.contains("wlan")||name.contains("wifi"))?2:1;
+            Enumeration<InetAddress> addresses=n.getInetAddresses();while(addresses.hasMoreElements()){InetAddress a=addresses.nextElement();if(!(a instanceof Inet4Address)||!a.isSiteLocalAddress())continue;if(score>bestScore){best=a.getHostAddress();bestScore=score;}}}
+        return best;
     }
     @JavascriptInterface public synchronized String startHost(String offer) {
         stop();try{if(offer==null||!offer.startsWith("GUESS1.")||offer.length()>MAX_LINE-64)throw new IOException("连接信息无效");String ip=privateIp();if(ip==null)throw new IOException("未找到局域网地址，请先连接 Wi-Fi 或开启热点");
@@ -36,3 +37,4 @@ public final class LanBridge {
     @JavascriptInterface public String getAnswer(){return answer;}
     @JavascriptInterface public synchronized void stop(){running=false;if(listener!=null){try{listener.close();}catch(IOException ignored){}listener=null;}answer="";secret="";}
 }
+
