@@ -38,4 +38,3 @@ node check.mjs
 ## 许可
 
 本项目代码按 [MIT License](LICENSE) 发布。角色图片属于 [OpenMoji](https://openmoji.org/)，采用 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)；详见 [第三方素材说明](THIRD_PARTY_NOTICES.md)。
-

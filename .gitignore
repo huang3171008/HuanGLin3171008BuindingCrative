@@ -1,0 +1,32 @@
+# Generated output and local game data
+game/dist/
+game/data/
+game/test-data/
+android/out/
+
+# Android signing keys and passwords
+android/signing/
+*.keystore
+*.jks
+*.p12
+*.pfx
+password.txt
+
+# Secrets, local configuration and databases
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal
+*.yaml
+*.yml
+!/.github/**/*.yml
+!/.github/**/*.yaml
+
+# System files
+.DS_Store
+Thumbs.db
