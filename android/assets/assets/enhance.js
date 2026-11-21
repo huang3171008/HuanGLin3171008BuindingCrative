@@ -33,3 +33,7 @@ function showRules(){showModal('玩法教程',`
 <details><summary>如何联机</summary><div><p>同一 Wi-Fi 或热点：房主创建连接码，对方输入后加入。</p><p>不同网络：房主发送邀请，对方生成回复并发回。当前没有中转，部分网络可能无法直连；连接信息只发给可信的人。</p></div></details>
 </div>`)}
 (function addRulesButton(){const heading=document.querySelector('.heading');const button=document.createElement('button');button.className='rules-button';button.textContent='？ 玩法教程';button.setAttribute('aria-label','查看玩法规则教程');button.onclick=showRules;heading.appendChild(button)})();
+
+function serverModeDialog(){showModal('服务器模式','<p>请输入双方都能访问的 HTTPS 游戏服务器地址。服务器钱包与直连钱包分开；旧站在中国大陆可能无法访问。</p><input id="serverAddress" class="stake" type="url" aria-label="服务器地址"><button class="secondary" onclick="openServerMode()">打开服务器</button>');document.getElementById('serverAddress').value=localStorage.getItem('guess_server_url')||'https://punch-pals-rps-2026.eternalknot8.chatgpt.site'}
+async function openServerMode(){const value=document.getElementById('serverAddress').value.trim();try{const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash||(url.pathname!=='/'&&url.pathname!==''))throw Error('请输入 HTTPS 服务器根地址');await ServerMode.open(url.origin);localStorage.setItem('guess_server_url',url.origin);closeModal()}catch(e){note(e.message||'服务器无法访问')}}
+(function addServerMode(){if(!window.ServerMode)return;const b=document.createElement('button');b.className='rules-button';b.style.marginLeft='8px';b.textContent='服务器模式';b.onclick=serverModeDialog;document.querySelector('.heading').appendChild(b)})();

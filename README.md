@@ -42,7 +42,7 @@ node check.mjs
 ## 多端升级
 
 - Android：局域网和不同网络直连、金币流水、10 个角色、四种主题及两段可选音乐。
-- Windows：`desktop/` 为独立桌面客户端，可与同版本安卓客户端连接。
+- Windows：`desktop/` 为独立桌面客户端，可与同版本安卓客户端连接，也可打开原服务器模式。
 - iPhone / iPad：`ios/` 为 Xcode 工程；本项目在 Windows 上开发，苹果工程尚未使用 Xcode 或实体设备验证。
 - 连接信息使用 `GUESS2` 协议，与早期版本不兼容，请双方升级。
 

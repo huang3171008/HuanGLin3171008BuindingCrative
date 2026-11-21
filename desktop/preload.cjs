@@ -6,3 +6,5 @@ contextBridge.exposeInMainWorld('LanBridge',{
  getAnswer:()=>ipcRenderer.invoke('lan:getAnswer'),
  stop:()=>ipcRenderer.invoke('lan:stop')
 });
+
+contextBridge.exposeInMainWorld('ServerMode',{open:url=>ipcRenderer.invoke('server:open',url)});
