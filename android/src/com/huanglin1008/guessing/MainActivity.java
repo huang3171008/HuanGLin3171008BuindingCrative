@@ -3,6 +3,9 @@ package com.huanglin1008.guessing;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
@@ -35,7 +38,8 @@ public final class MainActivity extends Activity {
     private String server;
     private final LanBridge lanBridge = new LanBridge();
     private AudioBridge audioBridge;
-    private boolean localMode = true;
+    private final ClipboardBridge clipboardBridge = new ClipboardBridge();
+    private volatile boolean localMode = true;
     private static final String LOCAL_HOST = "appassets.androidplatform.net";
     private int dp(float value) { return (int)(value * getResources().getDisplayMetrics().density + .5f); }
 
@@ -90,7 +94,7 @@ public final class MainActivity extends Activity {
                 Uri u=request.getUrl();if (!"https".equalsIgnoreCase(u.getScheme()) || !LOCAL_HOST.equalsIgnoreCase(u.getHost())) return null;
                 String path=u.getPath();String asset=null;String mime="text/plain";
                 if ("/index.html".equals(path)) {asset="index.html";mime="text/html";}
-                else if (path!=null && path.matches("/assets/(engine|p2p|enhance)\\.js")) {asset=path.substring(1);mime="application/javascript";}
+                else if (path!=null && path.matches("/assets/(engine|p2p|enhance|cloud-client)\\.js")) {asset=path.substring(1);mime="application/javascript";}
                 else if (path!=null && path.matches("/assets/[0-9A-F]+(?:-200D-[0-9A-F]+)*\\.svg")) {asset=path.substring(1);mime="image/svg+xml";}
                 else if (path!=null && path.matches("/assets/enhance\\.css")) {asset=path.substring(1);mime="text/css";}
                 else if (path!=null && path.matches("/assets/themes/(clouds|marble)\\.jpg")) {asset=path.substring(1);mime="image/jpeg";}
@@ -131,8 +135,19 @@ public final class MainActivity extends Activity {
         return box;
     }
     private void openHome() { openLocal(); }
-    private void openLocal() { lanBridge.stop();localMode=true;web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
-    private void openServer() { lanBridge.stop();localMode=false;web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
+    public final class ClipboardBridge {
+        @JavascriptInterface public boolean copy(String value) {
+            if (!localMode || value == null || value.isEmpty() || value.length() > 20000) return false;
+            try {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                if (clipboard == null) return false;
+                clipboard.setPrimaryClip(ClipData.newPlainText("猜拳连接信息", value));
+                return true;
+            } catch (RuntimeException ignored) { return false; }
+        }
+    }
+    private void openLocal() { lanBridge.stop();localMode=true;web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");web.addJavascriptInterface(clipboardBridge,"AppClipboard");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
+    private void openServer() { lanBridge.stop();localMode=false;web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.removeJavascriptInterface("AppClipboard");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
     private void showModeDialog() { new AlertDialog.Builder(this).setTitle("选择游戏模式").setItems(new String[]{"手机直连（局域网 / 不同网络）","原服务器模式"}, (d,which)->{if(which==0)openLocal();else showServerDialog();}).setNegativeButton("取消",null).show(); }
     private boolean handleLink(Uri uri) {
         if (localMode) { if ("https".equalsIgnoreCase(uri.getScheme()) && LOCAL_HOST.equalsIgnoreCase(uri.getHost())) return false; if ("https".equalsIgnoreCase(uri.getScheme())) { try { startActivity(new Intent(Intent.ACTION_VIEW,uri)); } catch(Exception ignored) {} } return true; }

@@ -1,0 +1,23 @@
+[Unit]
+Description=Guessing Arena cloud rooms
+After=network.target
+
+[Service]
+Type=simple
+User=guessgame
+WorkingDirectory=/opt/guessing/game
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=3100
+Environment=GAME_DATA_DIR=/var/lib/guessing
+Environment=GAME_TRUST_LOCAL_PROXY=1
+ExecStart=/usr/bin/node /opt/guessing/game/cloud-server.mjs
+Restart=on-failure
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/guessing
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,26 @@
+import {readFileSync,writeFileSync,unlinkSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+const source=readFileSync('test-peer.mjs','utf8');
+const start=source.indexOf('try{const [u1,u2]');
+const end=source.indexOf('}finally{for(const p of processes)',start);
+if(start<0||end<0)throw Error('Cannot locate browser harness');
+const scenario=`try{
+const a=await connect(await spawnBrowser(39281));
+await until(async()=>await a.eval('typeof copyConnection === "function"'),'页面未加载');
+await a.eval(\`document.getElementById('connectionBody').innerHTML='<textarea id="shareText">GUESS2.test</textarea><button id="copyButton" onclick="copyConnection(this)">复制邀请</button><p id="connectionStatus"></p>';Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:()=>Promise.reject(new Error('permission denied'))}});window.copyCalls=0;document.execCommand=(command)=>{if(command==='copy'){window.copyCalls++;return true}return false};\`);
+await a.eval("document.getElementById('copyButton').click()");
+await delay(200);
+assert.ok(await a.eval("document.getElementById('copyButton').innerText.includes('已复制')"),'复制按钮没有显示成功反馈');
+assert.equal(await a.eval('window.copyCalls'),1,'剪贴板 API 被拒绝时应尝试备用复制');
+assert.equal(await a.eval("document.getElementById('connectionStatus').innerText"),'已复制');
+await a.eval(\`window.AppClipboard={copy(value){window.nativeCopied=value;return true}};document.execCommand=()=>{throw Error('unexpected fallback')}\`);
+await a.eval('copyConnection()');
+assert.equal(await a.eval('window.nativeCopied'),'GUESS2.test','安卓原生复制应接收完整连接信息');
+await a.eval(\`delete window.AppClipboard;document.execCommand=()=>false;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:()=>Promise.reject(Error('denied'))}})\`);
+await a.eval('copyConnection()');
+assert.ok((await a.eval("document.getElementById('connectionStatus').innerText")).includes('手动全选复制'));
+console.log('原生复制、备用复制和复制失败提示均通过。');
+a.ws.close();
+`;
+const path='test-copy-generated.mjs';writeFileSync(path,source.slice(0,start)+scenario+source.slice(end));
+const r=spawnSync(process.execPath,[path],{stdio:'inherit'});try{unlinkSync(path)}catch{}process.exitCode=r.status??1;

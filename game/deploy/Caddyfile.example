@@ -1,0 +1,7 @@
+# Replace the placeholder with a domain you control. Do not run until DNS,
+# certificates, cloud firewall and applicable filing requirements are ready.
+game.example.com {
+    reverse_proxy 127.0.0.1:3100 {
+        header_up X-Real-IP {remote_host}
+    }
+}

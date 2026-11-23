@@ -1,0 +1,10 @@
+{
+  "name": "huanglin-guessing-cloud",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=24" },
+  "scripts": { "start:cloud": "node cloud-server.mjs", "test:cloud": "node test-cloud.mjs" },
+  "dependencies": { "ws": "8.23.0" }
+}
