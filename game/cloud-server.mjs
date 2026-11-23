@@ -86,7 +86,7 @@ wss.on('connection',(ws,req)=>{let id=null,alive=true;const remote=clientIp(req)
    const old=sockets.get(id);sockets.set(id,ws);if(old&&old!==ws)old.close(4001,'连接已更新');send(ws,{type:'authenticated',resume:session(id),protocol:1});const w=load();broadcast(w,roomPlayers(w,id));return;
   }
   if(sockets.get(id)!==ws)throw Error('连接已更新');if(!limiter('player:'+id,100,10000))throw Error('操作过于频繁，请稍后再试');if(msg.type!=='action')throw Error('无效请求');
-  if(msg.action==='history'){const entries=db.prepare('SELECT round,mode,delta,balance,details,created FROM ledger WHERE player=? ORDER BY created DESC LIMIT 100').all(id).map(x=>({...x,details:JSON.parse(x.details)}));send(ws,{type:'history',entries});return}
+  if(msg.action==='history'){const entries=db.prepare('SELECT round,mode,delta,balance,details,created FROM ledger WHERE player=? ORDER BY created DESC,rowid DESC LIMIT 100').all(id).map(x=>({...x,details:JSON.parse(x.details)}));send(ws,{type:'history',entries});return}
   if(msg.action==='list'){if(!limiter('list:'+id,12,60000))throw Error('查询过于频繁，请稍后再试');const rooms=Object.values(load().rooms).filter(r=>r.public===true&&r.phase==='waiting'&&r.players.length===1&&now()-r.updated<86400000).slice(0,20).map(r=>({code:r.code,mode:r.mode}));send(ws,{type:'rooms',rooms});return}
   if(msg.action==='join'&&(!limiter('join:'+id,12,60000)||!limiter('join-ip:'+remote,60,60000)))throw Error('查询过于频繁，请稍后再试');
   const result=operate(id,msg);send(ws,{type:'ack',id:msg.id,duplicate:result.duplicate});broadcast(result.world,result.affected);
