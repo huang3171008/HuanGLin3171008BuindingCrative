@@ -1,0 +1,5 @@
+const CACHE='guess-arena-shell-v2';
+const SHELL=['/index.html','/assets/engine.js','/assets/p2p.js','/assets/cloud-client.js','/assets/platform-bridge.js','/assets/shader-bg.js','/assets/audio-manager.js','/assets/ripple-transition.js','/assets/enhance.js','/assets/extras.js','/assets/ai-bot.js','/assets/qrcode.js','/assets/enhance.css','/assets/app-icon.png'];
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL))));
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('guess-arena-shell-')&&k!==CACHE).map(k=>caches.delete(k))))));
+self.addEventListener('fetch',event=>{const u=new URL(event.request.url);if(event.request.method!=='GET'||u.origin!==location.origin||(!SHELL.includes(u.pathname)&&!/^\/assets\/(?:[0-9A-F-]+\.svg|music\/[^/]+\.mp3)$/.test(u.pathname)))return;event.respondWith(fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(event.request,copy)))}return response}).catch(()=>caches.match(event.request)))});

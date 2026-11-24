@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
-node ../prepare-assets.mjs
+node ../sync-shared.mjs
 if ($LASTEXITCODE -ne 0) { throw '开源素材准备失败' }
 if (!$env:JAVA_HOME -or !$env:ANDROID_SDK_ROOT) { throw '请先设置 JAVA_HOME 和 ANDROID_SDK_ROOT。' }
 $jdk = Join-Path $env:JAVA_HOME 'bin'

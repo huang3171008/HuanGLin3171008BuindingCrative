@@ -1,6 +1,6 @@
 {
   "name": "huanglin-guessing-desktop",
-  "version": "3.0.0",
+  "version": "4.5.1",
   "private": true,
   "description": "猜拳小擂台 Windows 客户端",
   "main": "main.cjs",

@@ -2,6 +2,7 @@
 game/dist/
 game/data/
 game/test-data/
+game/data-cloud/
 android/out/
 
 # Android signing keys and passwords
@@ -34,6 +35,7 @@ Thumbs.db
 # Desktop dependencies and build output
 desktop/node_modules/
 desktop/app-assets/
+desktop/app-stage/
 desktop/release/
 
 # iOS generated resources and local build state
