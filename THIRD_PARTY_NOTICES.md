@@ -16,4 +16,6 @@
 - “云边散步”：Another Page Studio（IntelligentGene），[Overworld (BGM)](https://opengameart.org/content/overworld-bgm)，CC0。
 - “快乐时光”：wipics，[Happy Loop](https://opengameart.org/content/happy-loop)，CC0。
 
-大体积的图片和音频不直接存储在源码仓库；`prepare-assets.mjs` 会从上述原始来源下载，并在本地校验 SHA-256 后打包。
+共享前端中包含两首 CC0 音乐供离线使用；若文件缺失，`prepare-assets.mjs` 会从原始来源下载，并在本地校验 SHA-256 后打包。
+
+本版共享前端不再使用云朵和大理石 JPG 纹理；背景由 WebGL/CSS 生成。两首音乐仍为上述 OpenGameArt CC0 曲目。界面音效采用 [Kenney UI Audio](https://kenney.nl/assets/ui-audio) 的 CC0 素材：`click1.ogg`、`switch1.ogg`、`click2.ogg` 转码为 MP3；取得来源为 [Open Game SFX Index 镜像](https://github.com/Mcamento8/open-game-sfx-index)，下载文件与其 SHA-256 索引一致。找不到文件或无法解码时回退为 Web Audio 合成。指定的 Freesound 示例尚未随包提供；两个作品的原始下载需登录，参考 [Joyful Game Loop](https://freesound.org/people/Venus17/sounds/840648/) 与 [Cute Background Loop Song Thing](https://freesound.org/people/Seth_Makes_Sounds/sounds/655515/)。

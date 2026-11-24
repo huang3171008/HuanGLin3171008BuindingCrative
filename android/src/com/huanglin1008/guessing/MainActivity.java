@@ -33,12 +33,14 @@ import android.widget.TextView;
 public final class MainActivity extends Activity {
     private static final String DEFAULT_SERVER = "https://punch-pals-rps-2026.eternalknot8.chatgpt.site";
     private WebView web;
+    private View nativeBar;
     private View errorView;
     private SharedPreferences prefs;
     private String server;
     private final LanBridge lanBridge = new LanBridge();
     private AudioBridge audioBridge;
     private final ClipboardBridge clipboardBridge = new ClipboardBridge();
+    private final ServerBridge serverBridge = new ServerBridge();
     private volatile boolean localMode = true;
     private static final String LOCAL_HOST = "appassets.androidplatform.net";
     private int dp(float value) { return (int)(value * getResources().getDisplayMetrics().density + .5f); }
@@ -46,16 +48,25 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         audioBridge = new AudioBridge(this);
-        getWindow().setStatusBarColor(Color.rgb(57, 42, 77));
-        getWindow().setNavigationBarColor(Color.rgb(57, 42, 77));
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+        int ui = View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        if (android.os.Build.VERSION.SDK_INT >= 26) ui |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+        getWindow().getDecorView().setSystemUiVisibility(ui);
+        if (android.os.Build.VERSION.SDK_INT >= 28) {
+            android.view.WindowManager.LayoutParams attrs=getWindow().getAttributes();
+            attrs.layoutInDisplayCutoutMode=android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            getWindow().setAttributes(attrs);
+        }
         prefs = getSharedPreferences("guessing", MODE_PRIVATE);
         server = prefs.getString("server", DEFAULT_SERVER);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.rgb(248, 196, 209));
         LinearLayout bar = new LinearLayout(this);
+        nativeBar = bar;
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(dp(12), dp(3), dp(8), dp(3));
+        bar.setPadding(dp(12), dp(28), dp(8), dp(3));
         TextView title = new TextView(this);
         title.setText("✊ 猜拳小擂台");
         title.setTextColor(Color.rgb(57, 42, 77));
@@ -76,6 +87,7 @@ public final class MainActivity extends Activity {
         web = new WebView(this);
         WebSettings options = web.getSettings();
         options.setJavaScriptEnabled(true);
+        options.setMediaPlaybackRequiresUserGesture(true);
         options.setDomStorageEnabled(true);
         options.setAllowFileAccess(false);
         options.setAllowContentAccess(false);
@@ -94,11 +106,15 @@ public final class MainActivity extends Activity {
                 Uri u=request.getUrl();if (!"https".equalsIgnoreCase(u.getScheme()) || !LOCAL_HOST.equalsIgnoreCase(u.getHost())) return null;
                 String path=u.getPath();String asset=null;String mime="text/plain";
                 if ("/index.html".equals(path)) {asset="index.html";mime="text/html";}
-                else if (path!=null && path.matches("/assets/(engine|p2p|enhance|cloud-client)\\.js")) {asset=path.substring(1);mime="application/javascript";}
+                else if ("/manifest.webmanifest".equals(path)) {asset="manifest.webmanifest";mime="application/manifest+json";}
+                else if ("/service-worker.js".equals(path)) {asset="service-worker.js";mime="application/javascript";}
+                else if (path!=null && path.matches("/assets/(engine|p2p|enhance|cloud-client|platform-bridge|shader-bg|ripple-transition|audio-manager)\\.js")) {asset=path.substring(1);mime="application/javascript";}
                 else if (path!=null && path.matches("/assets/[0-9A-F]+(?:-200D-[0-9A-F]+)*\\.svg")) {asset=path.substring(1);mime="image/svg+xml";}
+                else if ("/assets/app-icon.png".equals(path)) {asset=path.substring(1);mime="image/png";}
                 else if (path!=null && path.matches("/assets/enhance\\.css")) {asset=path.substring(1);mime="text/css";}
                 else if (path!=null && path.matches("/assets/themes/(clouds|marble)\\.jpg")) {asset=path.substring(1);mime="image/jpeg";}
                 else if (path!=null && path.matches("/assets/music/(overworld|happy-loop)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
+                else if (path!=null && path.matches("/assets/sfx/(click|switch|confirm)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
                 if(asset!=null) try {return new WebResourceResponse(mime,"UTF-8",getAssets().open(asset));} catch(Exception ignored) {}
                 return new WebResourceResponse("text/plain","UTF-8",404,"Not Found",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));
             }
@@ -146,8 +162,17 @@ public final class MainActivity extends Activity {
             } catch (RuntimeException ignored) { return false; }
         }
     }
-    private void openLocal() { lanBridge.stop();localMode=true;web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");web.addJavascriptInterface(clipboardBridge,"AppClipboard");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
-    private void openServer() { lanBridge.stop();localMode=false;web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.removeJavascriptInterface("AppClipboard");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
+    public final class ServerBridge {
+        @JavascriptInterface public String open(String raw) {
+            if (!localMode || raw == null) return "error";
+            Uri u = Uri.parse(raw);
+            if (!"https".equalsIgnoreCase(u.getScheme()) || u.getHost()==null || u.getUserInfo()!=null || u.getQuery()!=null || u.getFragment()!=null || (u.getPath()!=null && !u.getPath().isEmpty() && !"/".equals(u.getPath()))) return "error";
+            final String next="https://"+u.getHost().toLowerCase(java.util.Locale.ROOT)+(u.getPort()==-1?"":":"+u.getPort());
+            runOnUiThread(()->{server=next;prefs.edit().putString("server",server).apply();openServer();});return "ok";
+        }
+    }
+    private void openLocal() { lanBridge.stop();localMode=true;nativeBar.setVisibility(View.GONE);web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");web.addJavascriptInterface(clipboardBridge,"AppClipboard");web.addJavascriptInterface(serverBridge,"ServerMode");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
+    private void openServer() { lanBridge.stop();localMode=false;nativeBar.setVisibility(View.VISIBLE);web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.removeJavascriptInterface("AppClipboard");web.removeJavascriptInterface("ServerMode");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
     private void showModeDialog() { new AlertDialog.Builder(this).setTitle("选择游戏模式").setItems(new String[]{"手机直连（局域网 / 不同网络）","原服务器模式"}, (d,which)->{if(which==0)openLocal();else showServerDialog();}).setNegativeButton("取消",null).show(); }
     private boolean handleLink(Uri uri) {
         if (localMode) { if ("https".equalsIgnoreCase(uri.getScheme()) && LOCAL_HOST.equalsIgnoreCase(uri.getHost())) return false; if ("https".equalsIgnoreCase(uri.getScheme())) { try { startActivity(new Intent(Intent.ACTION_VIEW,uri)); } catch(Exception ignored) {} } return true; }

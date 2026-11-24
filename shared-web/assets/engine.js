@@ -1,0 +1,70 @@
+const MOVE = ['rock','scissors','paper'];
+const NAMES = ['小狐狸','小熊','小兔子','小熊猫','机器人','外星人','宇航员','魔法师','小猫','画家'];
+const wins = (a,b) => a === b ? 0 : ({rock:'scissors',scissors:'paper',paper:'rock'}[a] === b ? 1 : -1);
+const err = message => { throw new Error(message); };
+const integer = n => Number.isSafeInteger(n);
+const copy = value => JSON.parse(JSON.stringify(value));
+function clean(world, now) {
+  for (const [code, room] of Object.entries(world.rooms)) if (now - room.updated > 86400000) { for (const p of room.players) if (world.players[p.id]?.room === code) world.players[p.id].room = null; delete world.rooms[code]; }
+  for (const [id, p] of Object.entries(world.players)) if (!p.room && now - p.seen > 90*86400000) delete world.players[id];
+}
+function sanitize(world,id) {
+  const me=world.players[id], r=me.room && world.rooms[me.room];
+  if (!r) return {wallet:me.wallet,character:me.character,room:null};
+  const i=r.players.findIndex(p=>p.id===id), other=r.players[1-i];
+  return {wallet:me.wallet,character:me.character,room:{code:r.code,mode:r.mode,round:r.round,phase:r.phase,players:r.players.map((p,j)=>({character:p.character,net:p.net,high:p.high,ready:!!p.move,guessed:!!p.guess,isMe:j===i,...(j===i?{move:p.move,stake:p.stake,tier:p.tier,guess:p.guess}: {})})),last:r.last,hasOpponent:!!other}};
+}
+function finishNormal(world,r){
+ const [a,b]=r.players; let bonus=[0,0];
+ if(a.net>=0&&b.net>=0&&a.net!==b.net){let wi=a.net>b.net?0:1,li=1-wi;let value=Math.min(Math.floor(r.players[li].net/2),world.players[r.players[li].id].wallet);bonus[wi]=value;bonus[li]=-value;}
+ else if(a.net>=0&&b.net<0)bonus[0]=a.net;
+ else if(b.net>=0&&a.net<0)bonus[1]=b.net;
+ for(let i=0;i<2;i++)world.players[r.players[i].id].wallet+=bonus[i];
+ r.last.final={nets:[a.net,b.net],bonus};r.phase='finished';
+}
+function settleNormal(world,r){
+ const [a,b]=r.players, outcome=wins(a.move,b.move);let changes=[];
+ for(let i=0;i<2;i++){let p=r.players[i],delta= -p.tier + (i===0?outcome:-outcome)*p.stake*(p.tier/10);world.players[p.id].wallet+=delta;p.net+=delta;changes.push(delta);}
+ r.last={round:r.round,moves:[a.move,b.move],outcome,changes,fees:[a.tier,b.tier],stakes:[a.stake,b.stake]};
+ for(const p of r.players){p.move=null;p.tier=null;p.stake=null;}
+ if(r.round===10)finishNormal(world,r);else r.round++;
+}
+function settleBet(world,r){
+ const [a,b]=r.players, outcome=wins(a.move,b.move),changes=outcome===0?[0,0]:[outcome*2*a.stake,-outcome*2*b.stake];
+ const handChanges=[...changes];
+ let correct;
+ if(r.mode==='guessMove')correct=[a.guess===b.move,b.guess===a.move];
+ else correct=outcome===0?null:[a.guess===(outcome===1?'win':'lose'),b.guess===(outcome===-1?'win':'lose')];
+ if(correct){if(correct[0]!==correct[1]){const win=correct[0]?0:1,lose=1-win;changes[win]+=r.players[lose].stake;changes[lose]-=r.players[lose].stake;}else{changes[0]-=a.stake;changes[1]-=b.stake;}}
+ for(let i=0;i<2;i++){world.players[r.players[i].id].wallet+=changes[i];r.players[i].net+=changes[i];}
+ r.last={round:1,moves:[a.move,b.move],outcome,guesses:[a.guess,b.guess],correct,stakes:[a.stake,b.stake],handChanges,guessChanges:changes.map((v,i)=>v-handChanges[i]),changes};r.phase='finished';
+}
+function mutate(world,id,body,now){
+ clean(world,now);let me=world.players[id];if(!me)me=world.players[id]={wallet:5000,character:0,room:null,seen:now};me.seen=now;
+ const action=body.action||'state';
+ if(action==='state')return;
+ if(action==='character'){if(!integer(body.character)||body.character<0||body.character>=NAMES.length)err('请选择有效角色');if(me.room)err('请先离开房间再更换角色');me.character=body.character;return;}
+ if(action==='leave'){const r=world.rooms[me.room];if(r){for(const p of r.players)if(world.players[p.id])world.players[p.id].room=null;delete world.rooms[me.room];}me.room=null;return;}
+ if(action==='create'){
+  if(me.room)err('请先离开当前房间');if(!['normal','guessMove','guessOutcome'].includes(body.mode))err('请选择游戏模式');if(body.mode==='normal'&&me.wallet<100)err('普通模式需要至少 100 金币，才能支付 10 回合的最低入场费');if(body.mode!=='normal'&&me.wallet<30)err('竞猜模式至少需要 30 金币');
+  let code;do{code=Array.from(crypto.getRandomValues(new Uint8Array(6)),x=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x%32]).join('')}while(world.rooms[code]);
+  world.rooms[code]={code,mode:body.mode,round:1,phase:'waiting',players:[{id,character:me.character,net:0,high:0,move:null,guess:null}],last:null,updated:now};me.room=code;return;
+ }
+ if(action==='join'){
+  if(me.room)err('请先离开当前房间');const code=String(body.code||'').trim().toUpperCase(),r=world.rooms[code];if(!r)err('没有找到这个房间，请检查房间码');if(r.players.length!==1||r.phase!=='waiting')err('房间已满或对局已开始');if(r.players[0].id===id)err('不能加入自己的房间');if(r.mode==='normal'&&me.wallet<100)err('普通模式需要至少 100 金币');if(r.mode!=='normal'&&me.wallet<30)err('竞猜模式至少需要 30 金币');r.players.push({id,character:me.character,net:0,high:0,move:null,guess:null});me.room=code;r.phase='move';r.updated=now;return;
+ }
+ const r=world.rooms[me.room];if(!r||r.players.length!==2)err('请等待另一位玩家加入');const p=r.players.find(x=>x.id===id);if(!p)err('你不在这个房间中');
+ if(action==='move'){
+  if(body.round!==undefined&&body.round!==r.round)err('回合已变化，请重新选择');
+  if(r.phase!=='move'||p.move)err('本回合已经出拳');if(!MOVE.includes(body.move))err('请选择手势');const stake=Number(body.stake);if(!integer(stake)||stake<1)err('请输入有效投入金币');
+  if(r.mode==='normal'){const tier=Number(body.tier);if(![10,20,30].includes(tier))err('请选择入场费');if(tier===30&&p.high>=2)err('30 金币场次每把最多选择两次');const remaining=10-r.round;const max=Math.floor((me.wallet-tier-remaining*10)/(tier/10));if(stake>max)err('投入过高，请保留后续回合的最低入场费');p.tier=tier;if(tier===30)p.high++;}
+  else {if(![10,20,50,100].includes(stake))err('请选择竞猜投入');if(me.wallet<stake*3)err('金币不足，需至少准备投入额的 3 倍');}
+  p.stake=stake;p.move=body.move;r.updated=now;
+  if(r.players.every(x=>x.move)){if(r.mode==='normal')settleNormal(world,r);else r.phase='guess';}return;
+ }
+ if(action==='guess'){
+  if(body.round!==undefined&&body.round!==r.round)err('回合已变化，请重新选择');
+  if(r.phase!=='guess'||p.guess)err('现在不能竞猜');const choices=r.mode==='guessMove'?MOVE:['win','lose'];if(!choices.includes(body.guess))err('请选择竞猜结果');p.guess=body.guess;r.updated=now;if(r.players.every(x=>x.guess))settleBet(world,r);return;
+ }
+ err('无效操作');
+}

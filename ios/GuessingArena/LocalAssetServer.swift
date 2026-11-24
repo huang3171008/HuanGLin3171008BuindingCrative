@@ -51,7 +51,7 @@ final class LocalAssetServer: ObservableObject {
         let relative = decoded == "/" ? "index.html" : String(decoded.drop(while: { $0 == "/" }))
         let file = root.appendingPathComponent(relative).standardizedFileURL
         guard file.path.hasPrefix(root.path + "/"), let data = try? Data(contentsOf: file) else { send(connection, status: "404 Not Found", headers: [:], body: Data()); return }
-        let types = ["html":"text/html; charset=utf-8", "js":"application/javascript; charset=utf-8", "css":"text/css; charset=utf-8", "svg":"image/svg+xml", "jpg":"image/jpeg", "mp3":"audio/mpeg"]
+        let types = ["html":"text/html; charset=utf-8", "js":"application/javascript; charset=utf-8", "css":"text/css; charset=utf-8", "svg":"image/svg+xml", "jpg":"image/jpeg", "png":"image/png", "webmanifest":"application/manifest+json", "mp3":"audio/mpeg"]
         var headers = ["Content-Type": types[file.pathExtension.lowercased()] ?? "application/octet-stream", "Accept-Ranges":"bytes", "Cache-Control":"no-store"]
         var body = data; var status = "200 OK"
         if let range = lines.first(where: { $0.lowercased().hasPrefix("range: bytes=") }), data.count > 0 {
