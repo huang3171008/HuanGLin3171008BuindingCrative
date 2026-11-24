@@ -12,5 +12,20 @@ async fn lan_get_offer(_code: String) -> Result<String, String> {
     Err("Tauri 局域网桥接尚未实现，请使用服务器房间".into())
 }
 
+#[tauri::command]
+async fn lan_send_answer(_code: String, _answer: String) -> Result<String, String> {
+    Err("Tauri 局域网桥接尚未实现，请使用服务器房间".into())
+}
+
+#[tauri::command]
+async fn lan_get_answer() -> Result<String, String> {
+    Err("Tauri 局域网桥接尚未实现，请使用服务器房间".into())
+}
+
+#[tauri::command]
+async fn lan_stop() -> Result<String, String> {
+    Err("Tauri 局域网桥接尚未实现，请使用服务器房间".into())
+}
+
 // Clipboard: use tauri-plugin-clipboard-manager with the minimum write
 // permission in the capability file. Do not grant read access unless required.
