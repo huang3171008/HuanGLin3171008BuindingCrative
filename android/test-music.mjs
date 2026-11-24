@@ -6,6 +6,7 @@ const head=source.slice(0,start).replace("awaitPromise:true,returnByValue:true",
 const scenario=`try{
 const a=await connect(await spawnBrowser(39281));await until(async()=>await a.eval('typeof musicModal === "function"'),'界面未加载');
 assert.equal(await a.eval("localStorage.getItem('guess_music_v1')"),'warm','新用户应默认新钢琴曲');
+await a.eval("chooseMusic('pixel')");await until(async()=>await a.eval('GameAudio.getCurrent()?.readyState>=2'),'像素曲未加载');assert.ok((await a.eval('GameAudio.getCurrent().src')).endsWith('/pixel-menu.mp3'));
 await a.eval("chooseMusic('warm')");await until(async()=>await a.eval('GameAudio.getCurrent()?.readyState>=2'),'钢琴曲未加载');
 assert.ok((await a.eval('GameAudio.getCurrent().src')).endsWith('/bright-piano.mp3'));
 await a.eval("chooseMusic('adventure')");await until(async()=>await a.eval('GameAudio.getCurrent()?.readyState>=2'),'冒险曲未加载');

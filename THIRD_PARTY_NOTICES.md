@@ -25,3 +25,16 @@
 - “暖阳钢琴”：OwlishMedia，[Happy Clappy Loop](https://opengameart.org/content/happy-clappy-loop)，CC0；从作者提供的 WAV 转码为 `bright-piano.mp3`。
 - “快乐冒险”：TinyWorlds，[Happy Adventure (Loop)](https://opengameart.org/content/happy-adventure-loop)，CC0；源文件 `happy_adveture.mp3` 保存为 `sunny-adventure.mp3`。MP3 解码和设备差异可能在循环处出现短暂间隙。
 - 旧版“云边散步”和“快乐时光”仍可在音乐菜单中选择。新用户第一次交互后尝试播放“暖阳钢琴”；原来选择旧曲的用户会迁移到对应新曲，原来选择关闭音乐的用户继续保持关闭。
+
+- **Happy menu song**, Blocky Modeler, [OpenGameArt](https://opengameart.org/content/happy-menu-song), CC0 1.0; `assets/music/pixel-menu.mp3`.
+- **qrcode-generator** 1.4.4, Kazuhiko Arase, MIT License: https://github.com/kazuhikoarase/qrcode-generator . The license header is preserved in `assets/qrcode.js`.
+
+### qrcode-generator MIT license
+
+Copyright (c) 2009 Kazuhiko Arase
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

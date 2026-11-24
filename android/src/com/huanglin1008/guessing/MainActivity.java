@@ -151,6 +151,9 @@ public final class MainActivity extends Activity {
         return box;
     }
     private void openHome() { openLocal(); }
+    public final class HapticsBridge {
+        @JavascriptInterface public void tap() { if (localMode) runOnUiThread(() -> web.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)); }
+    }
     public final class ClipboardBridge {
         @JavascriptInterface public boolean copy(String value) {
             if (!localMode || value == null || value.isEmpty() || value.length() > 20000) return false;
@@ -171,8 +174,8 @@ public final class MainActivity extends Activity {
             runOnUiThread(()->{server=next;prefs.edit().putString("server",server).apply();openServer();});return "ok";
         }
     }
-    private void openLocal() { lanBridge.stop();localMode=true;nativeBar.setVisibility(View.GONE);web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");web.addJavascriptInterface(clipboardBridge,"AppClipboard");web.addJavascriptInterface(serverBridge,"ServerMode");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
-    private void openServer() { lanBridge.stop();localMode=false;nativeBar.setVisibility(View.VISIBLE);web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.removeJavascriptInterface("AppClipboard");web.removeJavascriptInterface("ServerMode");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
+    private void openLocal() { lanBridge.stop();localMode=true;nativeBar.setVisibility(View.GONE);web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");web.addJavascriptInterface(clipboardBridge,"AppClipboard");web.addJavascriptInterface(serverBridge,"ServerMode");web.addJavascriptInterface(new HapticsBridge(),"AppHaptics");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
+    private void openServer() { lanBridge.stop();localMode=false;nativeBar.setVisibility(View.VISIBLE);web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.removeJavascriptInterface("AppClipboard");web.removeJavascriptInterface("ServerMode");web.removeJavascriptInterface("AppHaptics");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
     private void showModeDialog() { new AlertDialog.Builder(this).setTitle("选择游戏模式").setItems(new String[]{"手机直连（局域网 / 不同网络）","原服务器模式"}, (d,which)->{if(which==0)openLocal();else showServerDialog();}).setNegativeButton("取消",null).show(); }
     private boolean handleLink(Uri uri) {
         if (localMode) { if ("https".equalsIgnoreCase(uri.getScheme()) && LOCAL_HOST.equalsIgnoreCase(uri.getHost())) return false; if ("https".equalsIgnoreCase(uri.getScheme())) { try { startActivity(new Intent(Intent.ACTION_VIEW,uri)); } catch(Exception ignored) {} } return true; }

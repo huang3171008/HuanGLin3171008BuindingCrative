@@ -62,6 +62,7 @@ struct GameWebView: UIViewRepresentable {
               stop:()=>window.webkit.messageHandlers.lan.postMessage({action:'stop'})
             };
             window.ServerMode={open:(url)=>window.webkit.messageHandlers.lan.postMessage({action:'server',url})};
+            window.AppHaptics={tap:()=>window.webkit.messageHandlers.lan.postMessage({action:'haptic'}).catch(()=>{})};
             """
             config.userContentController.addUserScript(WKUserScript(source:bridge,injectionTime:.atDocumentStart,forMainFrameOnly:true))
         }
@@ -83,6 +84,7 @@ struct GameWebView: UIViewRepresentable {
             case "sendAnswer":lan.sendAnswer(data["code"] as? String ?? "",value:data["answer"] as? String ?? "",reply:reply)
             case "getAnswer":lan.getAnswer(reply)
             case "stop":lan.stop(reply)
+            case "haptic":replyHandler("ok",nil);DispatchQueue.main.async { UIImpactFeedbackGenerator(style:.light).impactOccurred() }
             case "server":
                 guard let value=data["url"] as? String,let u=URL(string:value),u.scheme?.lowercased()=="https",u.host != nil,u.user==nil else {replyHandler(nil,"服务器地址无效");return}
                 replyHandler("ok",nil);DispatchQueue.main.async { self.openServer(value) }

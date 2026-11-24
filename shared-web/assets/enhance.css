@@ -6,3 +6,7 @@ body[data-platform=browser] button[onclick='lanMenu()']{display:none}
 body[data-platform=electron] .app{padding-top:calc(52px + env(safe-area-inset-top,0px))}body[data-platform=electron]::before{content:"";position:fixed;z-index:19;top:0;left:0;right:150px;height:34px;-webkit-app-region:drag}
 
 body[data-platform=android] .app{padding-top:calc(18px + max(24px,env(safe-area-inset-top,0px)));padding-bottom:calc(var(--nav-height) + max(24px,env(safe-area-inset-bottom,0px)) + 35px)}body[data-platform=android] .bottom-nav{bottom:calc(12px + max(20px,env(safe-area-inset-bottom,0px)))}
+
+.room-qr{width:150px;margin:12px auto;padding:8px;background:#fff;border:2px solid var(--ink);border-radius:14px}.room-qr svg{display:block;width:100%;height:auto}.practice-result{animation:result-bounce .6s ease both}@keyframes result-bounce{0%{transform:scale(.9);opacity:.4}55%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+
+.wallet{position:relative}.coin-float{position:absolute;right:8px;top:0;pointer-events:none;color:#ac6633;text-shadow:0 1px white;animation:coin-rise 1s ease-out forwards}@keyframes coin-rise{to{transform:translateY(-35px);opacity:0}}

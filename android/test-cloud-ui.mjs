@@ -11,6 +11,7 @@ await a.eval("cloudMenu();document.getElementById('cloudAddress').value='http://
 await b.eval("cloudMenu();document.getElementById('cloudAddress').value='http://127.0.0.1:39188';startCloud()");
 await until(async()=>await a.eval('cloud.ready && !!state')&&await b.eval('cloud.ready && !!state'),'未连接服务器');
 await a.eval('createRoom()');await until(async()=>await a.eval("/^\\\\d{8}$/.test(state?.room?.code||'')"),'房主未取得八位房间码');
+assert.equal(await a.eval("!!document.querySelector('.room-qr svg')"),true,'等待好友时应生成二维码');assert.equal(await a.eval("roomQr('00000001').includes('<svg')"),true,'二维码应支持前导零');
 const code=await a.eval('state.room.code');await b.eval(\`document.getElementById('joinCode').value=\${JSON.stringify(code)};joinRoom()\`);
 await until(async()=>await a.eval("state?.room?.phase==='ready'")&&await b.eval("state?.room?.phase==='ready'"),'未进入准备状态');
 await a.eval('cloudReady()');await b.eval('cloudReady()');await until(async()=>await a.eval('state.room.lobbyReady.every(Boolean)'),'准备未同步');await a.eval('cloudStart()');
