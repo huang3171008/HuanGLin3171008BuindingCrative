@@ -1,7 +1,7 @@
 /* Shared presentation settings. The existing game engine and network code remain authoritative. */
 const LEDGER_KEY='direct_coin_history_v1',THEME_KEY='guess_theme_v1',MUSIC_KEY='guess_music_v1',VOLUME_KEY='guess_volume_v1';
 const THEME_NAMES={cloud:'晴空暖云',pink:'樱花糖霜',glass:'月光琉璃',marble:'奶油晨雾'};
-const MUSIC_NAMES={off:'关闭音乐',overworld:'云边散步',happy:'快乐时光'};
+const MUSIC_NAMES={off:'关闭音乐',warm:'暖阳钢琴 · 新',adventure:'快乐冒险 · 新',overworld:'云边散步 · 旧',happy:'快乐时光 · 旧'};
 let selectedTheme=localStorage.getItem(THEME_KEY)||'cloud';if(!THEME_NAMES[selectedTheme])selectedTheme='cloud';SkyRenderer.setPreset(selectedTheme);
 let selectedTrack=localStorage.getItem(MUSIC_KEY)||'off';if(!MUSIC_NAMES[selectedTrack])selectedTrack='off';let volume=GameAudio.getMusic(),audioPlayer=null;
 function readHistory(){try{const x=JSON.parse(localStorage.getItem(LEDGER_KEY)||'[]');return Array.isArray(x)?x:[]}catch{return []}}

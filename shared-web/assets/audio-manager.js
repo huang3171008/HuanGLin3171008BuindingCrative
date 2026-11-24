@@ -1,6 +1,13 @@
 /* Replace assets/sfx/{click,switch,confirm}.mp3 with licensed files when available. */
 window.GameAudio=(()=>{
- const tracks={overworld:'/assets/music/overworld.mp3',happy:'/assets/music/happy-loop.mp3'};
+ const tracks={warm:'/assets/music/bright-piano.mp3',adventure:'/assets/music/sunny-adventure.mp3',overworld:'/assets/music/overworld.mp3',happy:'/assets/music/happy-loop.mp3'};
+ // Migrate old choices once so an update actually plays the new music.
+ if(localStorage.getItem('guess_music_refresh_v2')!=='1'){
+  const old=localStorage.getItem('guess_music_v1');
+  if(old===null||old==='overworld')localStorage.setItem('guess_music_v1','warm');
+  else if(old==='happy')localStorage.setItem('guess_music_v1','adventure');
+  localStorage.setItem('guess_music_refresh_v2','1');
+ }
  const effects={click:'/assets/sfx/click.mp3',switch:'/assets/sfx/switch.mp3',confirm:'/assets/sfx/confirm.mp3'};
  let ctx=null,current=null,track='off',music=Number(localStorage.getItem('guess_volume_v1')??35)/100,sfx=Number(localStorage.getItem('guess_sfx_volume_v1')??45)/100,sfxOn=localStorage.getItem('guess_sfx_on_v1')!=='false',musicOn=localStorage.getItem('guess_music_on_v1')!=='false',fade=0,resumeAfterVisibility=false;const buffers={};
  music=Number.isFinite(music)?Math.max(0,Math.min(1,music)):.35;sfx=Number.isFinite(sfx)?Math.max(0,Math.min(1,sfx)):.45;

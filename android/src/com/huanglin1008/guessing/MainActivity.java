@@ -113,7 +113,7 @@ public final class MainActivity extends Activity {
                 else if ("/assets/app-icon.png".equals(path)) {asset=path.substring(1);mime="image/png";}
                 else if (path!=null && path.matches("/assets/enhance\\.css")) {asset=path.substring(1);mime="text/css";}
                 else if (path!=null && path.matches("/assets/themes/(clouds|marble)\\.jpg")) {asset=path.substring(1);mime="image/jpeg";}
-                else if (path!=null && path.matches("/assets/music/(overworld|happy-loop)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
+                else if (path!=null && path.matches("/assets/music/(overworld|happy-loop|bright-piano|sunny-adventure)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
                 else if (path!=null && path.matches("/assets/sfx/(click|switch|confirm)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
                 if(asset!=null) try {return new WebResourceResponse(mime,"UTF-8",getAssets().open(asset));} catch(Exception ignored) {}
                 return new WebResourceResponse("text/plain","UTF-8",404,"Not Found",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));
