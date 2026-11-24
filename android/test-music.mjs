@@ -13,6 +13,8 @@ assert.ok((await a.eval('GameAudio.getCurrent().src')).endsWith('/sunny-adventur
 await a.eval("localStorage.setItem('guess_music_v1','overworld');localStorage.removeItem('guess_music_refresh_v2');localStorage.setItem('guess_volume_v1','23');setTimeout(()=>location.reload(),20);'ok'");
 await until(async()=>await a.eval("localStorage.getItem('guess_music_refresh_v2')==='1' && localStorage.getItem('guess_music_v1')==='warm'"),'旧音乐未迁移');
 assert.equal(await a.eval("localStorage.getItem('guess_volume_v1')"),'23','更新不能更改音量');
+await a.eval("localStorage.setItem('guess_music_v1','happy');localStorage.removeItem('guess_music_refresh_v2');setTimeout(()=>location.reload(),20);'ok'");
+await until(async()=>await a.eval("localStorage.getItem('guess_music_refresh_v2')==='1' && localStorage.getItem('guess_music_v1')==='adventure'"),'第二首旧音乐未迁移');
 await a.eval("localStorage.setItem('guess_music_v1','off');localStorage.removeItem('guess_music_refresh_v2');setTimeout(()=>location.reload(),20);'ok'");
 await until(async()=>await a.eval("localStorage.getItem('guess_music_refresh_v2')==='1' && localStorage.getItem('guess_music_v1')==='off'"),'关闭音乐的用户不应自动开启');
 console.log('通过：两首新音乐实际加载、旧选择迁移、关闭状态和音量保留。');a.ws.close();
