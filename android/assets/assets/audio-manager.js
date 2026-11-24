@@ -1,6 +1,6 @@
 /* Replace assets/sfx/{click,switch,confirm}.mp3 with licensed files when available. */
 window.GameAudio=(()=>{
- const tracks={pixel:'/assets/music/pixel-menu.mp3',warm:'/assets/music/bright-piano.mp3',adventure:'/assets/music/sunny-adventure.mp3',overworld:'/assets/music/overworld.mp3',happy:'/assets/music/happy-loop.mp3'};
+ const tracks={flowerbed:'/assets/music/flowerbed.mp3',pixel:'/assets/music/pixel-menu.mp3',warm:'/assets/music/bright-piano.mp3',adventure:'/assets/music/sunny-adventure.mp3'};
  // Migrate old choices once so an update actually plays the new music.
  if(localStorage.getItem('guess_music_refresh_v2')!=='1'){
   const old=localStorage.getItem('guess_music_v1');
@@ -20,6 +20,6 @@ window.GameAudio=(()=>{
  function setSfxOn(on){sfxOn=!!on;localStorage.setItem('guess_sfx_on_v1',String(sfxOn))}
  document.addEventListener('pointerdown',()=>{unlock();if(track!=='off'&&musicOn&&!current)choose(track).catch(()=>{})},{once:true});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){resumeAfterVisibility=!!current&&!current.paused;current?.pause();ctx?.suspend().catch(()=>{})}else if(resumeAfterVisibility&&current&&musicOn){current.play().catch(()=>{});resumeAfterVisibility=false}});
- track=localStorage.getItem('guess_music_v1')||'off';if(!tracks[track])track='off';
+ track=localStorage.getItem('guess_music_v1')||'off';if(track==='overworld'||track==='happy'){track=track==='overworld'?'warm':'adventure';localStorage.setItem('guess_music_v1',track)}if(!tracks[track])track='off';
  return {unlock,playEffect,choose,setMusic,setSfx,setMusicOn,setSfxOn,getMusic:()=>Math.round(music*100),getSfx:()=>Math.round(sfx*100),isMusicOn:()=>musicOn,isSfxOn:()=>sfxOn,getCurrent:()=>current};
 })();

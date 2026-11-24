@@ -13,7 +13,12 @@ public final class AudioBridge {
     public AudioBridge(Context context) { this.context=context.getApplicationContext(); }
     @JavascriptInterface public synchronized String playTrack(String track,int volume) {
         stop();if("off".equals(track))return "ok";
-        final String name="overworld".equals(track)?"overworld.mp3":"happy".equals(track)?"happy-loop.mp3":null;
+        final String name;
+        if ("flowerbed".equals(track)) name = "flowerbed.mp3";
+        else if ("pixel".equals(track)) name = "pixel-menu.mp3";
+        else if ("warm".equals(track) || "overworld".equals(track)) name = "bright-piano.mp3";
+        else if ("adventure".equals(track) || "happy".equals(track)) name = "sunny-adventure.mp3";
+        else name = null;
         if(name==null)return "error";
         try(AssetFileDescriptor asset=context.getAssets().openFd("assets/music/"+name)) {
             player=new MediaPlayer();player.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());

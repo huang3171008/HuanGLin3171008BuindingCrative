@@ -63,6 +63,7 @@ struct GameWebView: UIViewRepresentable {
             };
             window.ServerMode={open:(url)=>window.webkit.messageHandlers.lan.postMessage({action:'server',url})};
             window.AppHaptics={tap:()=>window.webkit.messageHandlers.lan.postMessage({action:'haptic'}).catch(()=>{})};
+            window.AppShare={sharePng:(data)=>window.webkit.messageHandlers.lan.postMessage({action:'sharePng',data})};
             """
             config.userContentController.addUserScript(WKUserScript(source:bridge,injectionTime:.atDocumentStart,forMainFrameOnly:true))
         }
@@ -85,6 +86,10 @@ struct GameWebView: UIViewRepresentable {
             case "getAnswer":lan.getAnswer(reply)
             case "stop":lan.stop(reply)
             case "haptic":replyHandler("ok",nil);DispatchQueue.main.async { UIImpactFeedbackGenerator(style:.light).impactOccurred() }
+            case "sharePng":
+                guard let value=data["data"] as? String,value.hasPrefix("data:image/png;base64,"),value.count<4000000,let bytes=Data(base64Encoded:String(value.dropFirst(22))),let image=UIImage(data:bytes) else {replyHandler(nil,"战绩图无效");return}
+                replyHandler("ok",nil);DispatchQueue.main.async { guard let root=self.presenter() else {return};let controller=UIActivityViewController(activityItems:[image],applicationActivities:nil);controller.popoverPresentationController?.sourceView=root.view;controller.popoverPresentationController?.sourceRect=CGRect(x:root.view.bounds.midX,y:root.view.bounds.midY,width:1,height:1);root.present(controller,animated:true) }
+
             case "server":
                 guard let value=data["url"] as? String,let u=URL(string:value),u.scheme?.lowercased()=="https",u.host != nil,u.user==nil else {replyHandler(nil,"服务器地址无效");return}
                 replyHandler("ok",nil);DispatchQueue.main.async { self.openServer(value) }

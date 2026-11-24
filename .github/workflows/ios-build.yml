@@ -1,0 +1,33 @@
+name: Build iOS (Unsigned IPA)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-ios:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Sync shared web assets
+        run: node sync-shared.mjs
+      - name: Build unsigned application
+        working-directory: ios
+        run: |
+          xcodebuild -project GuessingArena.xcodeproj -scheme GuessingArena \
+            -configuration Release -sdk iphoneos -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+      - name: Package unsigned IPA
+        working-directory: ios
+        run: |
+          mkdir -p build/Payload
+          cp -R build/DerivedData/Build/Products/Release-iphoneos/GuessingArena.app build/Payload/
+          cd build
+          zip -qry GuessingArena-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GuessingArena-iOS-unsigned-ipa
+          path: ios/build/GuessingArena-unsigned.ipa
+          retention-days: 30

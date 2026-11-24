@@ -16,6 +16,7 @@ for(const [difficulty,mode] of [['easy','normal'],['normal','guessMove'],['hard'
   else {await until(async()=>await a.eval("state.room.phase==='guess'"),'未进入竞猜');await a.eval(\`api('guess',{guess:'\${mode==='guessMove'?'paper':'win'}'})\`);await until(async()=>await a.eval("state.room.phase==='finished'"),'竞猜未结束')}
  }
  assert.equal(await a.eval("state.room.phase"),'finished');assert.equal(await a.eval("Number(localStorage.getItem('direct_wallet_v1'))"),4321,'陪练不能改变直连钱包');
+ if(mode==='normal'){assert.equal(await a.eval("[...document.querySelectorAll('#app button')].some(b=>b.textContent==='生成战绩卡')"),true,'十回合后应显示战绩卡');assert.equal(await a.eval('recap.rounds.length'),10,'战绩卡应记录十个已揭晓回合');await a.eval("HTMLAnchorElement.prototype.click=function(){window.cardDownloaded=this.download};saveRecap();'ok'");await until(async()=>await a.eval("window.cardDownloaded==='猜拳战绩.png'"),'战绩图没有生成');await a.eval("window.AppShare={sharePng(data){window.cardShared=data.startsWith('data:image/png;base64,');return 'ok'}};saveRecap();'ok'");await until(async()=>await a.eval('window.cardShared===true'),'原生分享桥接未收到图片')}
  await a.eval("api('leave')");assert.equal(await a.eval('state.room'),null);
 }
 assert.equal(await a.eval('readHistory().length'),12);assert.equal(await a.eval("JSON.parse(localStorage.getItem('direct_coin_history_v1')||'[]').length"),0);

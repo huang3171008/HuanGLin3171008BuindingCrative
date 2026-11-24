@@ -7,14 +7,14 @@ const literals=[...java.matchAll(/"(\/assets\/[^"\n]+)"\.equals\(path\)/g)].map(
 if(!patterns.length)throw Error('无法读取 Android 资源规则');
 const allowed=path=>literals.includes(path)||patterns.some(pattern=>new RegExp(pattern).test(path));
 const html=readFileSync('assets/index.html','utf8'),audio=readFileSync('assets/assets/audio-manager.js','utf8');
-const required=[...[...html.matchAll(/<script\s+src="(\/assets\/[^"]+)"/g)].map(m=>m[1]),...[...audio.matchAll(/['"](\/assets\/music\/[^'"]+\.mp3)['"]/g)].map(m=>m[1])];
+const required=[...[...html.matchAll(/<script\s+src="(\/assets\/[^"]+)"/g)].map(m=>m[1]),...[...audio.matchAll(/['"](\/assets\/(?:music|sfx)\/[^'"]+\.mp3)['"]/g)].map(m=>m[1])];
 for(const path of required){if(!allowed(path))throw Error('Android 资源规则拦截了 '+path);try{readFileSync('assets'+path)}catch{throw Error('Android 资源不存在 '+path)}}
 const source=readFileSync('test-peer.mjs','utf8'),start=source.indexOf('try{const [u1,u2]'),end=source.indexOf('}finally{for(const p of processes)',start);
 if(start<0||end<0)throw Error('无法读取浏览器测试环境');
 const guard=`if(p.startsWith('/assets/')&&!${JSON.stringify(literals)}.includes(p)&&!${JSON.stringify(patterns)}.some(x=>new RegExp(x).test(p))){res.writeHead(404).end();return}`;
 const head=source.slice(0,start).replace("if(p.startsWith('/__lan/'))",guard+"if(p.startsWith('/__lan/'))").replace('awaitPromise:true,returnByValue:true','awaitPromise:true,returnByValue:true,userGesture:true');
 const scenario=`try{
-const a=await connect(await spawnBrowser(39281));await until(async()=>await a.eval('document.readyState === "complete"'),'页面未加载');
+const a=await connect(await spawnBrowser(39281));await until(async()=>await a.eval('document.readyState === "complete" && !!document.getElementById("wallet")'),'页面未加载');
 assert.equal(await a.eval("document.getElementById('wallet').textContent"),'5,000','金币余额未初始化');
 await a.eval("document.querySelectorAll('.bottom-nav button')[1].click()");assert.equal(await a.eval("document.getElementById('modal').hidden"),false,'陪练按钮无响应');
 await a.eval("document.querySelector('#modalBody button').click()");assert.equal(await a.eval('AIPractice.active'),true,'无法进入陪练');

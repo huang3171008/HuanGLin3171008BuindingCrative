@@ -1,3 +1,4 @@
+import {webcrypto as crypto} from 'node:crypto';
 import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';
 const ctx=vm.createContext({crypto});let source=readFileSync(process.env.GAME_ENGINE||'android/assets/assets/engine.js','utf8');if(source.includes('async function hash('))source=source.slice(source.indexOf('const MOVE ='),source.indexOf('async function hash('));vm.runInContext(source+'\nthis.engine={mutate,sanitize,wins};',ctx);const {mutate,sanitize}=ctx.engine;
 let now=Date.now();function init(mode){const world={players:{},rooms:{}};function act(id,body){return mutate(world,id,body,++now)}act('a',{action:'state'});act('b',{action:'state'});act('a',{action:'create',mode});const code=world.players.a.room;act('b',{action:'join',code});return {world,room:world.rooms[code],act}}

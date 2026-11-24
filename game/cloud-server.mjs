@@ -40,7 +40,7 @@ function newCode(){for(let i=0;i<100;i++){const code=String(randomInt(100000000)
 function operate(id,msg){
  if(!/^[a-f0-9-]{36}$/i.test(msg.id||''))throw Error('请求编号无效');
  if(!msg.data||typeof msg.data!=='object'||Array.isArray(msg.data))throw Error('请求格式错误');
- const action=msg.action,data=msg.data,allowed=['state','character','create','join','leave','ready','start','move','guess','replay'];if(!allowed.includes(action))throw Error('无效操作');
+ const action=msg.action,data=msg.data,allowed=['state','character','create','join','leave','ready','start','move','guess','replay','daily'];if(!allowed.includes(action))throw Error('无效操作');
  const digest=hash(JSON.stringify({action,data}));
  return transaction(()=>{
   const previous=db.prepare('SELECT hash FROM operations WHERE player=? AND id=?').get(id,msg.id);
@@ -48,7 +48,9 @@ function operate(id,msg){
   const w=load();mutate(w,id,{action:'state'},now());pruneCodes(w);const before=roomPlayers(w,id);let room=w.rooms[w.players[id].room];
   if(['ready','start','replay','move','guess'].includes(action)&&(!room||data.matchId!==room.matchId))throw Error('对局已变化，请重新选择');
   if(['move','guess'].includes(action)&&(!Number.isInteger(data.round)||data.round!==room.round))throw Error('回合已变化，请重新选择');
-  if(action==='create'){
+  if(action==='daily'){
+   const player=w.players[id],stamp=now();if(player.room)throw Error('请先离开房间再领取');if(player.lastDaily&&stamp-player.lastDaily<86400000)throw Error('距离上次领取未满 24 小时');if(player.wallet>1e12-100)throw Error('金币余额已达上限');player.wallet+=100;player.lastDaily=stamp;db.prepare('INSERT INTO ledger VALUES(?,?,?,?,?,?,?,?)').run(id,'daily:'+randomUUID(),0,'daily',100,player.wallet,JSON.stringify([{label:'每日领取',delta:100}]),stamp);
+  }else if(action==='create'){
    mutate(w,id,{action,mode:data.mode},now());const old=w.players[id].room;room=w.rooms[old];const code=newCode();delete w.rooms[old];room.code=code;room.roomId=randomUUID();room.public=data.public===true;room.matchId=randomUUID();room.lobbyReady={};room.replayReady={};room.score=[0,0];w.rooms[code]=room;w.players[id].room=code;
   }else if(action==='join'){
    if(typeof data.code!=='string'||!/^\d{8}$/.test(data.code))throw Error('房间码应为8位数字');
@@ -86,6 +88,7 @@ wss.on('connection',(ws,req)=>{let id=null,alive=true;const remote=clientIp(req)
    const old=sockets.get(id);sockets.set(id,ws);if(old&&old!==ws)old.close(4001,'连接已更新');send(ws,{type:'authenticated',resume:session(id),protocol:1});const w=load();broadcast(w,roomPlayers(w,id));return;
   }
   if(sockets.get(id)!==ws)throw Error('连接已更新');if(!limiter('player:'+id,100,10000))throw Error('操作过于频繁，请稍后再试');if(msg.type!=='action')throw Error('无效请求');
+  if(msg.action==='emote'){const text=msg.data?.text,valid=['稳了','别出石头','快点呀','平局吧','好厉害','再来一局'];if(!valid.includes(text))throw Error('表情无效');if(!limiter('emote:'+id,8,10000))throw Error('表情发送过快');const w=load(),room=w.rooms[w.players[id]?.room];if(!room||room.players.length!==2)throw Error('需要先进入双人房间');for(const p of room.players)if(p.id!==id){const other=sockets.get(p.id);if(other)send(other,{type:'emote',text})}return}
   if(msg.action==='history'){const entries=db.prepare('SELECT round,mode,delta,balance,details,created FROM ledger WHERE player=? ORDER BY created DESC,rowid DESC LIMIT 100').all(id).map(x=>({...x,details:JSON.parse(x.details)}));send(ws,{type:'history',entries});return}
   if(msg.action==='list'){if(!limiter('list:'+id,12,60000))throw Error('查询过于频繁，请稍后再试');const rooms=Object.values(load().rooms).filter(r=>r.public===true&&r.phase==='waiting'&&r.players.length===1&&now()-r.updated<86400000).slice(0,20).map(r=>({code:r.code,mode:r.mode}));send(ws,{type:'rooms',rooms});return}
   if(msg.action==='join'&&(!limiter('join:'+id,12,60000)||!limiter('join-ip:'+remote,60,60000)))throw Error('查询过于频繁，请稍后再试');

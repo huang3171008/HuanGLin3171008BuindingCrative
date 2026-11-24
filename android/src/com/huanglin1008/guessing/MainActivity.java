@@ -108,13 +108,13 @@ public final class MainActivity extends Activity {
                 if ("/index.html".equals(path)) {asset="index.html";mime="text/html";}
                 else if ("/manifest.webmanifest".equals(path)) {asset="manifest.webmanifest";mime="application/manifest+json";}
                 else if ("/service-worker.js".equals(path)) {asset="service-worker.js";mime="application/javascript";}
-                else if (path!=null && path.matches("/assets/(engine|p2p|enhance|cloud-client|platform-bridge|shader-bg|ripple-transition|audio-manager|ai-bot|qrcode)\\.js")) {asset=path.substring(1);mime="application/javascript";}
+                else if (path!=null && path.matches("/assets/(engine|p2p|enhance|cloud-client|platform-bridge|shader-bg|ripple-transition|audio-manager|ai-bot|qrcode|extras)\\.js")) {asset=path.substring(1);mime="application/javascript";}
                 else if (path!=null && path.matches("/assets/[0-9A-F]+(?:-200D-[0-9A-F]+)*\\.svg")) {asset=path.substring(1);mime="image/svg+xml";}
                 else if ("/assets/app-icon.png".equals(path)) {asset=path.substring(1);mime="image/png";}
                 else if (path!=null && path.matches("/assets/enhance\\.css")) {asset=path.substring(1);mime="text/css";}
                 else if (path!=null && path.matches("/assets/themes/(clouds|marble)\\.jpg")) {asset=path.substring(1);mime="image/jpeg";}
-                else if (path!=null && path.matches("/assets/music/(overworld|happy-loop|bright-piano|sunny-adventure|pixel-menu)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
-                else if (path!=null && path.matches("/assets/sfx/(click|switch|confirm)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
+                else if (path!=null && path.matches("/assets/music/(overworld|happy-loop|bright-piano|sunny-adventure|pixel-menu|flowerbed)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
+                else if (path!=null && path.matches("/assets/sfx/(click|switch|confirm|win|lose|coin)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
                 if(asset!=null) try {return new WebResourceResponse(mime,"UTF-8",getAssets().open(asset));} catch(Exception ignored) {}
                 return new WebResourceResponse("text/plain","UTF-8",404,"Not Found",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));
             }
@@ -151,8 +151,38 @@ public final class MainActivity extends Activity {
         return box;
     }
     private void openHome() { openLocal(); }
+    public static final class ImageProvider extends android.content.ContentProvider {
+        @Override public boolean onCreate(){return true;}
+        @Override public String getType(Uri uri){return "image/png";}
+        @Override public android.database.Cursor query(Uri uri,String[] projection,String selection,String[] args,String sort){
+            if(!"/recap.png".equals(uri.getPath())) return null;
+            String[] columns=projection!=null?projection:new String[]{android.provider.OpenableColumns.DISPLAY_NAME,android.provider.OpenableColumns.SIZE};
+            android.database.MatrixCursor cursor=new android.database.MatrixCursor(columns);Object[] values=new Object[columns.length];
+            for(int i=0;i<columns.length;i++) { if(android.provider.OpenableColumns.DISPLAY_NAME.equals(columns[i])) values[i]="猜拳战绩.png"; else if(android.provider.OpenableColumns.SIZE.equals(columns[i])) values[i]=new java.io.File(getContext().getCacheDir(),"recap.png").length(); }
+            cursor.addRow(values);return cursor;
+        }
+        @Override public Uri insert(Uri uri,android.content.ContentValues values){throw new SecurityException();}
+        @Override public int delete(Uri uri,String selection,String[] args){throw new SecurityException();}
+        @Override public int update(Uri uri,android.content.ContentValues values,String selection,String[] args){throw new SecurityException();}
+        @Override public android.os.ParcelFileDescriptor openFile(Uri uri,String mode) throws java.io.FileNotFoundException {
+            if (!"r".equals(mode) || !"/recap.png".equals(uri.getPath())) throw new java.io.FileNotFoundException();
+            return android.os.ParcelFileDescriptor.open(new java.io.File(getContext().getCacheDir(),"recap.png"),android.os.ParcelFileDescriptor.MODE_READ_ONLY);
+        }
+    }
+    public final class ShareBridge {
+        @JavascriptInterface public String sharePng(String data){
+            if(!localMode || data==null || !data.startsWith("data:image/png;base64,") || data.length()>4000000) return "error";
+            try {
+                byte[] bytes=android.util.Base64.decode(data.substring(22),android.util.Base64.DEFAULT);
+                if(bytes.length<8 || bytes[0]!=(byte)0x89 || bytes[1]!=0x50 || bytes[2]!=0x4e || bytes[3]!=0x47) return "error";
+                try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(getCacheDir(),"recap.png"))){out.write(bytes);}
+                Uri uri=Uri.parse("content://com.huanglin1008.guessing.share/recap.png");
+                runOnUiThread(()->{try{Intent send=new Intent(Intent.ACTION_SEND);send.setType("image/png");send.putExtra(Intent.EXTRA_STREAM,uri);send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);send.setClipData(ClipData.newRawUri("战绩卡",uri));startActivity(Intent.createChooser(send,"分享战绩卡"));}catch(RuntimeException ignored){}});return "ok";
+            }catch(Exception ignored){return "error";}
+        }
+    }
     public final class HapticsBridge {
-        @JavascriptInterface public void tap() { if (localMode) runOnUiThread(() -> web.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)); }
+        @JavascriptInterface public void tap() { if (!localMode) return; try { android.os.Vibrator v=(android.os.Vibrator)getSystemService(Context.VIBRATOR_SERVICE); if(v!=null && v.hasVibrator()) { if(android.os.Build.VERSION.SDK_INT>=26) v.vibrate(android.os.VibrationEffect.createOneShot(12,android.os.VibrationEffect.DEFAULT_AMPLITUDE)); else v.vibrate(12); } } catch(RuntimeException ignored) {} }
     }
     public final class ClipboardBridge {
         @JavascriptInterface public boolean copy(String value) {
@@ -174,8 +204,8 @@ public final class MainActivity extends Activity {
             runOnUiThread(()->{server=next;prefs.edit().putString("server",server).apply();openServer();});return "ok";
         }
     }
-    private void openLocal() { lanBridge.stop();localMode=true;nativeBar.setVisibility(View.GONE);web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");web.addJavascriptInterface(clipboardBridge,"AppClipboard");web.addJavascriptInterface(serverBridge,"ServerMode");web.addJavascriptInterface(new HapticsBridge(),"AppHaptics");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
-    private void openServer() { lanBridge.stop();localMode=false;nativeBar.setVisibility(View.VISIBLE);web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.removeJavascriptInterface("AppClipboard");web.removeJavascriptInterface("ServerMode");web.removeJavascriptInterface("AppHaptics");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
+    private void openLocal() { lanBridge.stop();localMode=true;nativeBar.setVisibility(View.GONE);web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");web.addJavascriptInterface(clipboardBridge,"AppClipboard");web.addJavascriptInterface(serverBridge,"ServerMode");web.addJavascriptInterface(new HapticsBridge(),"AppHaptics");web.addJavascriptInterface(new ShareBridge(),"AppShare");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
+    private void openServer() { lanBridge.stop();localMode=false;nativeBar.setVisibility(View.VISIBLE);web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.removeJavascriptInterface("AppClipboard");web.removeJavascriptInterface("ServerMode");web.removeJavascriptInterface("AppHaptics");web.removeJavascriptInterface("AppShare");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
     private void showModeDialog() { new AlertDialog.Builder(this).setTitle("选择游戏模式").setItems(new String[]{"手机直连（局域网 / 不同网络）","原服务器模式"}, (d,which)->{if(which==0)openLocal();else showServerDialog();}).setNegativeButton("取消",null).show(); }
     private boolean handleLink(Uri uri) {
         if (localMode) { if ("https".equalsIgnoreCase(uri.getScheme()) && LOCAL_HOST.equalsIgnoreCase(uri.getHost())) return false; if ("https".equalsIgnoreCase(uri.getScheme())) { try { startActivity(new Intent(Intent.ACTION_VIEW,uri)); } catch(Exception ignored) {} } return true; }

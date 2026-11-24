@@ -3,7 +3,7 @@
 window.AIPractice=(()=>{
  const KEY='practice_wallet_v1', HISTORY='practice_history_v1';
  const hands=['rock','scissors','paper'], defeats={rock:'paper',scissors:'rock',paper:'scissors'};
- let world=null,timer=null,history=[],plan=null,epoch=0;
+ let world=null,timer=null,history=[],plan=null,epoch=0,rematching=false;
  const ai={active:false,thinking:false,difficulty:'easy'};
  const rand=()=>crypto.getRandomValues(new Uint32Array(1))[0]/4294967296;
  const pick=a=>a[Math.floor(rand()*a.length)];
@@ -40,7 +40,15 @@ window.AIPractice=(()=>{
  function afterChange(){const r=sanitize(world,'human').room;if(r?.last){const k=r.code+':'+r.last.round;if(k!==lastKey){lastKey=k;history.push(r.last.moves[0])}}publish();schedule()}
  ai.start=function(difficulty){if(peer.ready||cloud.active){note('请先断开当前联机，再开始陪练');return}ai.difficulty=difficulty;ai.active=true;ai.thinking=false;history=[];lastKey='';world={players:{},rooms:{}};mutate(world,'human',{action:'state'},Date.now());world.players.human.wallet=wallet();world.players.human.character=Number(localStorage.getItem('direct_character_v1'))||0;mutate(world,'bot',{action:'state'},Date.now());world.players.bot.character={easy:1,normal:0,hard:7}[difficulty]??1;peer.ready=true;peer.role='host';signature='';showGame();publish();closeModal();note('已进入离线陪练，金币与联机钱包分开')};
  ai.stop=function(){++epoch;clearTimeout(timer);timer=null;ai.active=false;ai.thinking=false;world=null;peer.ready=false;peer.role=null;state=null;signature='';document.getElementById('gameArea').hidden=true;document.getElementById('directInfo').hidden=true;document.getElementById('connectionArea').hidden=false;connectionMenu();p2pApi('state',{},true)};
- ai.action=async function(action,data={},silent=false){try{if(action==='create'){history=[];lastKey='';mutate(world,'human',{action,...data},Date.now());mutate(world,'bot',{action:'join',code:world.players.human.room},Date.now());afterChange();return}if(action==='leave'){++epoch;clearTimeout(timer);timer=null;ai.thinking=false;plan=null}mutate(world,'human',{action,...data,...(['move','guess'].includes(action)?{round:state.room.round}:{})},Date.now());afterChange();if(!silent)note('')}catch(e){if(!silent)note(e.message)}};
+ ai.action=async function(action,data={},silent=false){try{if(action==='create'){history=[];lastKey='';mutate(world,'human',{action,...data},Date.now());try{world.players.bot.wallet=5000;mutate(world,'bot',{action:'join',code:world.players.human.room},Date.now())}catch(e){mutate(world,'human',{action:'leave'},Date.now());throw e}afterChange();return true}if(action==='leave'){++epoch;clearTimeout(timer);timer=null;ai.thinking=false;plan=null}mutate(world,'human',{action,...data,...(['move','guess'].includes(action)?{round:state.room.round}:{})},Date.now());afterChange();if(!silent)note('');return true}catch(e){if(!silent)note(e.message);return false}};
  ai.reset=function(){if(ai.active&&state?.room){note('请先离开当前对局');return}localStorage.setItem(KEY,'5000');localStorage.removeItem(HISTORY);if(ai.active){world.players.human.wallet=5000;publish()}note('陪练钱包已重置为 5000 金币')};
+
+ const EMOTE_REPLIES={
+  easy:['嘿嘿，继续！','好厉害呀','平局吧','我再想想…','再来一局'],
+  normal:['稳了','别出石头','猜猜我出啥','好厉害','再来一局'],
+  hard:['看穿你了','稳了','别出石头','这把必胜','再来一局']
+ };
+ ai.rematch=async function(){if(rematching||!ai.active||state?.room?.phase!=='finished')return;const currentMode=state.room.mode;if(state.wallet<(currentMode==='normal'?100:30)){note('练习金币不足，请返回大厅后重置练习钱包');return}rematching=true;try{const leaving=ai.action('leave'),expected=epoch;if(!await leaving)return;if(ai.active&&epoch===expected&&!state?.room)await ai.action('create',{mode:currentMode})}finally{rematching=false}};
+ ai.replyEmote=function(playerText){if(!ai.active||!state?.room?.hasOpponent)return;const roomCode=state.room.code,pool=EMOTE_REPLIES[ai.difficulty]||EMOTE_REPLIES.easy;const reply=playerText==='快点呀'?'马上就好！':pick(pool);setTimeout(()=>{if(ai.active&&state?.room?.code===roomCode&&typeof window.receivePracticeEmote==='function')window.receivePracticeEmote(reply)},650+Math.floor(rand()*550))};
  ai.wallet=wallet;return ai;
 })();
