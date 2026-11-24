@@ -108,12 +108,12 @@ public final class MainActivity extends Activity {
                 if ("/index.html".equals(path)) {asset="index.html";mime="text/html";}
                 else if ("/manifest.webmanifest".equals(path)) {asset="manifest.webmanifest";mime="application/manifest+json";}
                 else if ("/service-worker.js".equals(path)) {asset="service-worker.js";mime="application/javascript";}
-                else if (path!=null && path.matches("/assets/(engine|p2p|enhance|cloud-client|platform-bridge|shader-bg|ripple-transition|audio-manager)\\.js")) {asset=path.substring(1);mime="application/javascript";}
+                else if (path!=null && path.matches("/assets/(engine|p2p|enhance|cloud-client|platform-bridge|shader-bg|ripple-transition|audio-manager|ai-bot|qrcode)\\.js")) {asset=path.substring(1);mime="application/javascript";}
                 else if (path!=null && path.matches("/assets/[0-9A-F]+(?:-200D-[0-9A-F]+)*\\.svg")) {asset=path.substring(1);mime="image/svg+xml";}
                 else if ("/assets/app-icon.png".equals(path)) {asset=path.substring(1);mime="image/png";}
                 else if (path!=null && path.matches("/assets/enhance\\.css")) {asset=path.substring(1);mime="text/css";}
                 else if (path!=null && path.matches("/assets/themes/(clouds|marble)\\.jpg")) {asset=path.substring(1);mime="image/jpeg";}
-                else if (path!=null && path.matches("/assets/music/(overworld|happy-loop|bright-piano|sunny-adventure)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
+                else if (path!=null && path.matches("/assets/music/(overworld|happy-loop|bright-piano|sunny-adventure|pixel-menu)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
                 else if (path!=null && path.matches("/assets/sfx/(click|switch|confirm)\\.mp3")) {asset=path.substring(1);mime="audio/mpeg";}
                 if(asset!=null) try {return new WebResourceResponse(mime,"UTF-8",getAssets().open(asset));} catch(Exception ignored) {}
                 return new WebResourceResponse("text/plain","UTF-8",404,"Not Found",java.util.Collections.emptyMap(),new ByteArrayInputStream(new byte[0]));
