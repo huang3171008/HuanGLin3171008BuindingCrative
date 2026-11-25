@@ -176,7 +176,7 @@ public final class MainActivity extends Activity {
                 byte[] bytes=android.util.Base64.decode(data.substring(22),android.util.Base64.DEFAULT);
                 if(bytes.length<8 || bytes[0]!=(byte)0x89 || bytes[1]!=0x50 || bytes[2]!=0x4e || bytes[3]!=0x47) return "error";
                 try(java.io.FileOutputStream out=new java.io.FileOutputStream(new java.io.File(getCacheDir(),"recap.png"))){out.write(bytes);}
-                Uri uri=Uri.parse("content://com.huanglin1008.guessing.share/recap.png");
+                Uri uri=Uri.parse("content://"+getPackageName()+".share/recap.png");
                 runOnUiThread(()->{try{Intent send=new Intent(Intent.ACTION_SEND);send.setType("image/png");send.putExtra(Intent.EXTRA_STREAM,uri);send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);send.setClipData(ClipData.newRawUri("战绩卡",uri));startActivity(Intent.createChooser(send,"分享战绩卡"));}catch(RuntimeException ignored){}});return "ok";
             }catch(Exception ignored){return "error";}
         }
@@ -206,7 +206,7 @@ public final class MainActivity extends Activity {
     }
     private void openLocal() { lanBridge.stop();localMode=true;nativeBar.setVisibility(View.GONE);web.stopLoading();web.clearHistory();web.addJavascriptInterface(lanBridge,"LanBridge");web.addJavascriptInterface(audioBridge,"AppAudio");web.addJavascriptInterface(clipboardBridge,"AppClipboard");web.addJavascriptInterface(serverBridge,"ServerMode");web.addJavascriptInterface(new HapticsBridge(),"AppHaptics");web.addJavascriptInterface(new ShareBridge(),"AppShare");errorView.setVisibility(View.GONE);web.loadUrl("https://"+LOCAL_HOST+"/index.html"); }
     private void openServer() { lanBridge.stop();localMode=false;nativeBar.setVisibility(View.VISIBLE);web.stopLoading();audioBridge.stop();web.removeJavascriptInterface("AppAudio");web.removeJavascriptInterface("LanBridge");web.removeJavascriptInterface("AppClipboard");web.removeJavascriptInterface("ServerMode");web.removeJavascriptInterface("AppHaptics");web.removeJavascriptInterface("AppShare");web.clearHistory();errorView.setVisibility(View.GONE);web.loadUrl(server+"/"); }
-    private void showModeDialog() { new AlertDialog.Builder(this).setTitle("选择游戏模式").setItems(new String[]{"手机直连（局域网 / 不同网络）","原服务器模式"}, (d,which)->{if(which==0)openLocal();else showServerDialog();}).setNegativeButton("取消",null).show(); }
+    private void showModeDialog() { new AlertDialog.Builder(this).setTitle("选择游戏模式").setItems(new String[]{"本机游戏（服务器房间 / 局域网）","旧网页服务器（非房间码）"}, (d,which)->{if(which==0)openLocal();else showServerDialog();}).setNegativeButton("取消",null).show(); }
     private boolean handleLink(Uri uri) {
         if (localMode) { if ("https".equalsIgnoreCase(uri.getScheme()) && LOCAL_HOST.equalsIgnoreCase(uri.getHost())) return false; if ("https".equalsIgnoreCase(uri.getScheme())) { try { startActivity(new Intent(Intent.ACTION_VIEW,uri)); } catch(Exception ignored) {} } return true; }
         Uri allowed = Uri.parse(server);

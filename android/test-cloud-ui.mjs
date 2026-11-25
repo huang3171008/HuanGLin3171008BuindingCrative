@@ -10,8 +10,8 @@ await until(async()=>await a.eval('typeof cloudMenu === "function"')&&await b.ev
 await a.eval("cloudMenu();document.getElementById('cloudAddress').value='http://127.0.0.1:39188';startCloud()");
 await b.eval("cloudMenu();document.getElementById('cloudAddress').value='http://127.0.0.1:39188';startCloud()");
 await until(async()=>await a.eval('cloud.ready && !!state')&&await b.eval('cloud.ready && !!state'),'未连接服务器');
-await a.eval('createRoom()');await until(async()=>await a.eval("/^\\\\d{8}$/.test(state?.room?.code||'')"),'房主未取得八位房间码');
-assert.equal(await a.eval("!!document.querySelector('.room-qr svg')"),true,'等待好友时应生成二维码');assert.equal(await a.eval("roomQr('00000001').includes('<svg')"),true,'二维码应支持前导零');
+await a.eval('createRoom()');await until(async()=>await a.eval("/^\\\\d{6}$/.test(state?.room?.code||'')"),'房主未取得六位房间码');
+assert.equal(await a.eval("!!document.querySelector('.room-qr svg')"),true,'等待好友时应生成二维码');assert.equal(await a.eval("roomQr('000001').includes('<svg')"),true,'二维码应支持前导零');
 const code=await a.eval('state.room.code');await b.eval(\`document.getElementById('joinCode').value=\${JSON.stringify(code)};joinRoom()\`);
 await until(async()=>await a.eval("state?.room?.phase==='ready'")&&await b.eval("state?.room?.phase==='ready'"),'未进入准备状态');
 await a.eval('cloudReady()');await b.eval('cloudReady()');await until(async()=>await a.eval('state.room.lobbyReady.every(Boolean)'),'准备未同步');await a.eval('cloudStart()');
@@ -22,7 +22,7 @@ assert.equal(await a.eval('state.wallet'),5000);assert.equal(await b.eval('state
 await a.eval(\`const forged=structuredClone(state);forged.room.code='<img src=x onerror="window.compromised=true">';cloud.ws.dispatchEvent(new MessageEvent('message',{data:JSON.stringify({type:'state',state:forged})}));\`);
 assert.equal(await a.eval('window.compromised===true'),false,'伪造服务器状态不得执行脚本');
 assert.equal(await a.eval('cloud.ready'),false,'无效服务器状态必须断开');
-console.log('通过：独立浏览器界面连接本机服务器、八位房间码、准备和服务端结算。');a.ws.close();b.ws.close();
+console.log('通过：独立浏览器界面连接本机服务器、六位房间码、准备和服务端结算。');a.ws.close();b.ws.close();
 `;
 const dir=mkdtempSync(join(tmpdir(),'guess-cloud-ui-'));const server=spawn(process.execPath,['cloud-server.mjs'],{cwd:resolve('../game'),env:{...process.env,PORT:'39188',GAME_DATA_DIR:dir},stdio:'ignore',windowsHide:true});
 const generated='test-cloud-ui-generated.mjs';

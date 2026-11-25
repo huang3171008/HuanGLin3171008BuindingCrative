@@ -10,7 +10,7 @@ await until(async()=>await a.eval('typeof cloudMenu === "function"')&&await b.ev
 await a.eval("cloudMenu();document.getElementById('cloudAddress').value='http://127.0.0.1:39189';startCloud()");
 await b.eval("cloudMenu();document.getElementById('cloudAddress').value='http://127.0.0.1:39189';startCloud()");
 await until(async()=>await a.eval('cloud.ready && !!state')&&await b.eval('cloud.ready && !!state'),'桌面程序未连接服务器');
-await a.eval('createRoom()');await until(async()=>await a.eval("/^\\\\d{8}$/.test(state?.room?.code||'')"),'房间码未生成');
+await a.eval('createRoom()');await until(async()=>await a.eval("/^\\\\d{6}$/.test(state?.room?.code||'')"),'房间码未生成');
 const code=await a.eval('state.room.code');await b.eval(\`document.getElementById('joinCode').value=\${JSON.stringify(code)};joinRoom()\`);
 await until(async()=>await a.eval("state?.room?.phase==='ready'")&&await b.eval("state?.room?.phase==='ready'"),'加入失败');
 await a.eval('cloudReady()');await b.eval('cloudReady()');await until(async()=>await a.eval('state.room.lobbyReady.every(Boolean)'),'准备失败');await a.eval('cloudStart()');

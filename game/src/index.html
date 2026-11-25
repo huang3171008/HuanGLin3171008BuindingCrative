@@ -53,4 +53,3 @@ function showRules(){showModal('玩法教程',`
 <details><summary>如何联机</summary><div><p>服务器模式：房主创建房间并分享房间码，对方连接同一服务器后加入。</p><p>服务器必须能被双方访问。</p></div></details>
 </div>`)}
 (function(){const h=document.querySelector('.heading');const b=document.createElement('button');b.className='rules-button';b.textContent='？ 玩法教程';b.onclick=showRules;h.appendChild(b);const w=document.querySelector('.wallet');w.setAttribute('role','button');w.setAttribute('tabindex','0');w.setAttribute('aria-label','查看金币变化记录');w.style.cursor='pointer';w.onclick=showLedger;w.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showLedger()}}})();</script></body></html>
-
