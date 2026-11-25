@@ -15,7 +15,7 @@
 - **Android 签名安装包**：`d:\Gemini 创作\猜拳小擂台\release-v4.7\猜拳小擂台-v4.7.1-技能特效美化版.apk`（与旧版同签名 `SHA-256: 2c4181d3...56e9`，`versionCode="15"`，支持直接覆盖安装保留数据）
 - **Windows 桌面版程序**：`d:\Gemini 创作\猜拳小擂台\release-v4.7\GuessingArena-win32-x64\GuessingArena.exe`（已更新 `app.asar` 至 v4.7.1）
 - **完整整合与美化总报告**：`d:\Gemini 创作\猜拳小擂台\v4.7.1-项目整合与特效美化总报告.md`
-- **GitHub 分支同步**：已推送至 `origin/codex/cloud-room-prototype-20261124`（对应 PR #1；因项目仍在持续迭代且待真机试玩平衡，暂未合并至 `main`）。
+- **GitHub 分支同步状态**：本地 `codex/cloud-room-prototype-20261124` 已就绪待推送（领先远端提交，0 敏感文件；因本机 Git Credential Manager 尚未登录 GitHub，需用户在本机终端执行 `git push origin codex/cloud-room-prototype-20261124` 完成浏览器授权推送；因仍在迭代且待真机试玩平衡，暂不合并至 `main`）。
 
 ### 常用同步、构建与测试命令
 - **同步三端前端**：`cd "d:\Gemini 创作\猜拳小擂台"; node sync-shared.mjs`
