@@ -37,6 +37,7 @@ desktop/node_modules/
 desktop/app-assets/
 desktop/app-stage/
 desktop/release/
+release-v4.7/
 
 # iOS generated resources and local build state
 ios/GuessingArena/web/

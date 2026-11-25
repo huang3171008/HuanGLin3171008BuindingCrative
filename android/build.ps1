@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
 node ../sync-shared.mjs
 if ($LASTEXITCODE -ne 0) { throw '开源素材准备失败' }
