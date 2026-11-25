@@ -16,7 +16,7 @@ struct RootView: View {
     var body: some View {
         VStack(spacing:0) {
             if useServer { HStack {
-                Text("猜拳小擂台").font(.headline)
+                Text("猜拳竞技塔").font(.headline)
                 Spacer()
                 Button("手机直连") { useServer=false }
                 Button("服务器") { draft=server;showServer=true }

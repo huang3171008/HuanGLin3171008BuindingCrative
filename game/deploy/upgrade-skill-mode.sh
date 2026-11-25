@@ -1,5 +1,5 @@
 #!/bin/sh
-# 猜拳小擂台 v4.6 技能对战服务端安全升级与自动回滚脚本
+# 猜拳竞技塔 v4.6 技能对战服务端安全升级与自动回滚脚本
 # 用法：先将新版 engine.js 上传至 /tmp/guess-arena-engine.js，新版 cloud-server.mjs 上传至 /tmp/guess-arena-cloud-server.mjs，再以 root 运行本脚本。
 set -eu
 app=/opt/guess-arena-cloud

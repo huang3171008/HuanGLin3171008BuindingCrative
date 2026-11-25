@@ -1,4 +1,4 @@
-# 猜拳小擂台 · Huang-Lin1008 Guessing
+# 猜拳竞技塔 · Huang-Lin1008 Guessing
 
 共享前端在 `shared-web/`，通过 `node sync-shared.mjs` 同步到 Android、Windows 和 iOS 工程。版本 4.6 使用 **6 位云房间码**；旧版 8 位码客户端需要升级。
 

@@ -68,7 +68,7 @@ public final class MainActivity extends Activity {
         bar.setGravity(Gravity.CENTER_VERTICAL);
         bar.setPadding(dp(12), dp(28), dp(8), dp(3));
         TextView title = new TextView(this);
-        title.setText("✊ 猜拳小擂台");
+        title.setText("✊ 猜拳竞技塔");
         title.setTextColor(Color.rgb(57, 42, 77));
         title.setTextSize(17);
         title.setTypeface(null, 1);

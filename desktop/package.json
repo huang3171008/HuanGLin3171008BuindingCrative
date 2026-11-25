@@ -2,7 +2,7 @@
   "name": "huanglin-guessing-desktop",
   "version": "4.7.1",
   "private": true,
-  "description": "猜拳小擂台 Windows 客户端",
+  "description": "猜拳竞技塔 Windows 客户端",
   "main": "main.cjs",
   "scripts": {
     "start": "node sync-assets.mjs && electron .",

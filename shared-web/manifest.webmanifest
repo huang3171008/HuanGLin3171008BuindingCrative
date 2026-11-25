@@ -1,6 +1,6 @@
 {
-  "name": "猜拳小擂台",
-  "short_name": "猜拳小擂台",
+  "name": "猜拳竞技塔",
+  "short_name": "猜拳竞技塔",
   "description": "与好友一起玩石头剪刀布",
   "start_url": "/index.html",
   "scope": "/",

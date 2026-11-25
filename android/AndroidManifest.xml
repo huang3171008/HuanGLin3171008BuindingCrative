@@ -2,7 +2,7 @@
     <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="35" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <application android:label="猜拳小擂台" android:icon="@drawable/icon" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:usesCleartextTraffic="false" android:allowBackup="false" android:supportsRtl="true" android:hardwareAccelerated="true">
+    <application android:label="猜拳竞技塔" android:icon="@drawable/icon" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:usesCleartextTraffic="false" android:allowBackup="false" android:supportsRtl="true" android:hardwareAccelerated="true">
         <provider android:name=".MainActivity$ImageProvider" android:authorities="com.huanglin1008.guessing.share" android:exported="false" android:grantUriPermissions="true" />
         <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>

@@ -1,9 +1,9 @@
-# 项目无缝接力档案（HANDOFF）· 猜拳小擂台
+# 项目无缝接力档案（HANDOFF）· 猜拳竞技塔
 
 > 本文件供 **Antigravity (Gemini)** 与 **OpenAI Codex** 实时同步进度。任一方完成一步修改、测试或诊断后，请立即更新本文件。
 
 ## 1. 项目概况
-- **项目名称**：`猜拳小擂台 (Huang-Lin1008 Guessing)`
+- **项目名称**：`猜拳竞技塔 (Huang-Lin1008 Guessing)`
 - **当前版本 / 分支**：`v4.7.1`（Android `versionCode="15"`）/ 分支 `codex/cloud-room-prototype-20261124`
 - **最后更新时间**：`2026-11-25 11:13`
 - **最后经手 AI**：Antigravity（已完成 16 张 Game-icons.net 赛璐璐技能徽章、PixelFX 双缓冲粒子引擎、卡牌 3D 翻转抖动与手势蓄力发光特效，并重新打包 v4.7.1 安卓与桌面端）
@@ -12,7 +12,7 @@
 ## 2. 最新安装包产物与本机运行/测试命令
 
 ### 已打包的 v4.7.1 交付物（位于 `.gitignore` 忽略的 `release-v4.7/`）
-- **Android 签名安装包**：`d:\Gemini 创作\猜拳小擂台\release-v4.7\猜拳小擂台-v4.7.1-技能特效美化版.apk`（与旧版同签名 `SHA-256: 2c4181d3...56e9`，`versionCode="15"`，支持直接覆盖安装保留数据）
+- **Android 签名安装包**：`d:\Gemini 创作\猜拳小擂台\release-v4.7\猜拳竞技塔-v4.7.1-技能特效美化版.apk`（与旧版同签名 `SHA-256: 2c4181d3...56e9`，`versionCode="15"`，支持直接覆盖安装保留数据）
 - **Windows 桌面版程序**：`d:\Gemini 创作\猜拳小擂台\release-v4.7\GuessingArena-win32-x64\GuessingArena.exe`（已更新 `app.asar` 至 v4.7.1）
 - **完整整合与美化总报告**：`d:\Gemini 创作\猜拳小擂台\v4.7.1-项目整合与特效美化总报告.md`
 - **GitHub 分支同步状态**：本地 `codex/cloud-room-prototype-20261124` 已就绪待推送（领先远端提交，0 敏感文件；因本机 Git Credential Manager 尚未登录 GitHub，需用户在本机终端执行 `git push origin codex/cloud-room-prototype-20261124` 完成浏览器授权推送；因仍在迭代且待真机试玩平衡，暂不合并至 `main`）。
@@ -31,7 +31,7 @@
 - [x] **Android 白名单放行与 v4.7.1 双端重新打包**：`MainActivity.java` 已放行 `/assets/pixelfx.js` 与 `/assets/skills/*.svg`，`test-android-asset-policy.mjs` 已新增 16 张技能 SVG 校验。
 
 ## 4. 正在进行 / 下一步待办（按优先级）
-1. [ ] **真机覆盖安装试玩**：将 `猜拳小擂台-v4.7.1-技能特效美化版.apk` 覆盖安装到 Android 手机，实测卡牌翻转、粒子手感与 16 张技能卡数值平衡。
+1. [ ] **真机覆盖安装试玩**：将 `猜拳竞技塔-v4.7.1-技能特效美化版.apk` 覆盖安装到 Android 手机，实测卡牌翻转、粒子手感与 16 张技能卡数值平衡。
 2. [ ] **远端仓库同步与运维加固**：确认后将本地 Git 分支推送至 GitHub（切勿包含 `release-v4.7/` 大体积安装包或任何密钥）；为云服务器配置定时 SQLite 备份。
 
 ## 5. 踩坑记录与红线提醒

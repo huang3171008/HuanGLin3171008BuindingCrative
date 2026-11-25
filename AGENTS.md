@@ -1,4 +1,4 @@
-# 猜拳小擂台 · 双 AI 无缝接力规范（Antigravity × OpenAI Codex）
+# 猜拳竞技塔 · 双 AI 无缝接力规范（Antigravity × OpenAI Codex）
 
 本项目启用 **Antigravity (Gemini)** 与 **OpenAI Codex** 双端无缝接力模式。无论单独打开本目录还是从上级工作区进入，当前 AI 均须遵守以下规则：
 

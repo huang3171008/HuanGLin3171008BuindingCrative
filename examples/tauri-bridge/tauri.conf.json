@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "猜拳小擂台",
+  "productName": "猜拳竞技塔",
   "version": "0.1.0",
   "identifier": "com.huanglin1008.guessing",
   "build": { "frontendDist": "../../shared-web" },
   "app": {
     "withGlobalTauri": true,
-    "windows": [{ "title": "猜拳小擂台", "width": 560, "height": 820, "minWidth": 360, "minHeight": 590, "decorations": true }],
+    "windows": [{ "title": "猜拳竞技塔", "width": 560, "height": 820, "minWidth": 360, "minHeight": 590, "decorations": true }],
     "security": { "csp": "default-src 'self' asset: http://asset.localhost; script-src 'self' 'unsafe-inline' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' asset: data:; media-src 'self' asset:; connect-src 'self' ipc: http://ipc.localhost wss: ws://127.0.0.1:*" }
   },
   "bundle": { "active": true, "targets": "all" }
