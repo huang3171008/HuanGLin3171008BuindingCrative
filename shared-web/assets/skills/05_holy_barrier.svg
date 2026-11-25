@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<defs>
+  <linearGradient id="bg-05_holy_barrier" x1="15%" y1="8%" x2="85%" y2="92%"><stop offset="0%" stop-color="#63c8fa"/><stop offset="100%" stop-color="#2d6bc9"/></linearGradient>
+  <linearGradient id="ic-05_holy_barrier" x1="20%" y1="0%" x2="80%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#bfeaff"/></linearGradient>
+  <clipPath id="cp-05_holy_barrier"><polygon points="64,9 112,36 112,92 64,119 16,92 16,36" stroke-linejoin="round"/></clipPath>
+</defs>
+<g transform="translate(0,4)" fill="#3d3155" opacity="0.28"><polygon points="64,9 112,36 112,92 64,119 16,92 16,36" stroke-linejoin="round"/></g>
+<g fill="url(#bg-05_holy_barrier)" stroke="#3d3155" stroke-width="5.5" stroke-linejoin="round"><polygon points="64,9 112,36 112,92 64,119 16,92 16,36" stroke-linejoin="round"/></g>
+<g clip-path="url(#cp-05_holy_barrier)">
+  <path d="M-12,72 L76,-16 L98,-16 L10,72 Z" fill="#ffffff" opacity="0.24"/>
+  <path d="M22,86 L102,6 L112,6 L32,86 Z" fill="#ffffff" opacity="0.15"/>
+  <ellipse cx="64" cy="112" rx="56" ry="22" fill="#3d3155" opacity="0.22"/>
+</g>
+<polygon points="64,17 104,40 104,88 64,111 24,88 24,40" fill="none" stroke="#d4f4ff" stroke-width="2.6" opacity="0.72" stroke-linejoin="round"/>
+<g transform="translate(26,26) scale(0.1484375)">
+  <path d="M48.906 19.656v10.782c0 103.173 10.53 206.07 41.313 289.53 30.78 83.463 82.763 148.094 164.53 170.563l2.188.626 2.25-.5c89.686-19.12 142.322-84.028 171.187-168.344 28.865-84.315 35.406-188.656 35.406-291.875v-10.78l-10.655 1.53C323.26 39.954 191.452 40 59.595 21.188l-10.69-1.53zM67.75 41.03c63.242 8.536 126.495 12.792 189.75 12.782v184.532h174.78c-4.905 27.572-11.31 53.747-19.592 77.937-27.348 79.884-73.757 137.33-155.157 155.564-.008-.003-.02.003-.03 0v-233.5H86.53c-12.87-60.99-18.277-128.81-18.78-197.313z" fill="url(#ic-05_holy_barrier)" stroke="#3d3155" stroke-width="26" stroke-linejoin="round" stroke-linecap="round" paint-order="stroke fill"/>
+</g>
+</svg>

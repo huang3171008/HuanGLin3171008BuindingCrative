@@ -31,7 +31,7 @@ body[data-platform=android] .app-scroll{padding-bottom:calc(var(--nav-height) + 
 .daily-btn.has-badge::after{content:'';position:absolute;top:7px;right:10px;width:9px;height:9px;border-radius:50%;background:#ff5c77;border:1.5px solid var(--ink);animation:badge-pulse 1.6s ease-in-out infinite}
 @keyframes badge-pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.28);opacity:.78}}
 @media(max-width:430px){.heading{margin:8px 0 12px}.extra-bar{margin:0 0 12px}}
-/* Skill mode layout (cel-shaded style, no external icon/FX dependency) */
+/* Skill mode Cel-shaded TCG cards, 3D flip-wobble & move charge glow */
 .variant-grid{display:grid;gap:8px}
 .hp-wrap{margin-top:6px}
 .hp-bar{height:10px;background:#fff;border:2px solid var(--ink);border-radius:99px;overflow:hidden}
@@ -39,21 +39,62 @@ body[data-platform=android] .app-scroll{padding-bottom:calc(var(--nav-height) + 
 .hp-text{font-size:12px;font-weight:900;margin-top:3px}
 .status-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;margin-top:4px}
 .status-tags span{font-size:11px;font-weight:800;padding:2px 6px;border-radius:10px;border:1.5px solid var(--ink);background:#fff6cc}
-.skill-hud{background:#fff8ea;border:2px solid var(--ink);border-radius:16px;padding:11px;margin-top:6px}
+.skill-hud{background:#fff8ea;border:2px solid var(--ink);border-radius:18px;padding:12px;margin-top:6px}
 .skill-hud-bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font-size:13px;font-weight:800;padding-bottom:8px;border-bottom:1.5px dashed #d8c8df}
 .skill-hud-bar em{font-style:normal;color:#b3395b}
-.skill-hand-head{display:flex;justify-content:space-between;align-items:center;margin:8px 0 6px;font-size:13px;font-weight:900}
-.skill-hand-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.skill-card{display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:9px 10px;border:2px solid var(--ink);border-radius:13px;background:#fffdf9;box-shadow:0 3px 0 #6a5371;gap:3px}
-.skill-card.selected{background:#fff0b7;box-shadow:0 4px 0 var(--ink)}
-.skill-card-top{display:flex;justify-content:space-between;align-items:center;gap:4px}
-.skill-badge{font-size:11px;font-weight:900;padding:2px 6px;border-radius:8px;background:#ede6ff;border:1.5px solid var(--ink)}
-.skill-cost{font-size:12px;font-weight:900;color:#6343a6}
-.skill-card strong{font-size:14px;line-height:1.25}
-.skill-trigger{font-size:11px;font-weight:800;color:#875a2b}
-.skill-desc{font-size:12px;line-height:1.4;color:#4f435d;font-weight:700}
+.skill-hand-head{display:flex;justify-content:space-between;align-items:center;margin:8px 0 8px;font-size:13px;font-weight:900}
+.skill-hand-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;perspective:600px;padding-top:6px}
+.skill-card{--card-glow:#ff9d47;--card-tint:#fff7ec;position:relative;display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:10px 10px 9px;border:2.5px solid var(--ink);border-radius:16px;background:linear-gradient(155deg,#fffef9 0 58%,var(--card-tint) 58% 100%);box-shadow:0 4px 0 #5b486e;gap:5px;transform-style:preserve-3d;transition:transform .24s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease,border-color .2s ease}
+.skill-card::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(125deg,rgba(255,255,255,.45) 0 18%,transparent 18% 100%);border-radius:13px}
+.skill-card.school-attack{--card-glow:#ff6c47;--card-tint:#ffeae3}
+.skill-card.school-defense{--card-glow:#47bfff;--card-tint:#e3f4ff}
+.skill-card.school-heal{--card-glow:#2fd684;--card-tint:#e3faee}
+.skill-card.school-trick{--card-glow:#a96bff;--card-tint:#f1e8ff}
+.skill-card.selected{transform:translateY(-10px);border-color:var(--ink);box-shadow:0 11px 0 var(--ink),0 0 0 3px var(--card-glow),0 0 18px color-mix(in srgb,var(--card-glow) 68%,transparent);animation:card-glow-pulse 1.9s ease-in-out infinite}
+.skill-card.card-flip-in{animation:card-flip-wobble .56s cubic-bezier(.22,.82,.36,1) forwards,card-glow-pulse 1.9s .56s ease-in-out infinite}
+.skill-card.card-drop-out{animation:card-drop-settle .24s ease-out forwards}
+@keyframes card-flip-wobble{
+ 0%{transform:perspective(600px) rotateY(0deg) translateY(0) scale(1)}
+ 26%{transform:perspective(600px) rotateY(180deg) translateY(-13px) scale(1.06)}
+ 52%{transform:perspective(600px) rotateY(360deg) translateY(-10px) rotate(-3deg) scale(1.03)}
+ 70%{transform:perspective(600px) rotateY(360deg) translateY(-10px) rotate(2.5deg) scale(1.02)}
+ 86%{transform:perspective(600px) rotateY(360deg) translateY(-10px) rotate(-1deg) scale(1.01)}
+ 100%{transform:perspective(600px) rotateY(360deg) translateY(-10px) rotate(0deg) scale(1)}
+}
+@keyframes card-drop-settle{0%{transform:translateY(-9px) scale(1.02)}100%{transform:translateY(0) scale(1)}}
+@keyframes card-glow-pulse{
+ 0%,100%{box-shadow:0 11px 0 var(--ink),0 0 0 3px var(--card-glow),0 0 14px color-mix(in srgb,var(--card-glow) 55%,transparent)}
+ 50%{box-shadow:0 11px 0 var(--ink),0 0 0 4px var(--card-glow),0 0 24px color-mix(in srgb,var(--card-glow) 85%,transparent)}
+}
+.skill-card-top{display:flex;justify-content:space-between;align-items:center;gap:4px;position:relative;z-index:1}
+.skill-badge{font-size:11px;font-weight:900;padding:2px 7px;border-radius:9px;border:1.5px solid var(--ink);color:var(--ink)}
+.badge-attack{background:#ffd5c4}.badge-defense{background:#cbeeff}.badge-heal{background:#c8f7df}.badge-trick{background:#e7d4ff}
+.skill-gem{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:2px 8px;border-radius:99px;border:2px solid var(--ink);background:linear-gradient(155deg,#fff5b8 0 42%,#ffd257 42% 100%);box-shadow:0 2px 0 var(--ink),inset 0 2px 0 rgba(255,255,255,.7);font-size:12px;font-weight:1000;color:var(--ink)}
+.skill-art-row{display:flex;align-items:center;gap:8px;position:relative;z-index:1;margin:1px 0}
+.skill-icon{width:46px;height:46px;flex:0 0 46px;display:block;object-fit:contain;filter:drop-shadow(0 2px 0 rgba(61,49,85,.28))}
+.skill-title-col{min-width:0;flex:1}
+.skill-card strong{display:block;font-size:14px;line-height:1.25}
+.skill-trigger{display:block;font-size:11px;font-weight:800;color:#875a2b;margin-top:2px}
+.skill-desc{font-size:12px;line-height:1.4;color:#4f435d;font-weight:700;position:relative;z-index:1}
 .skill-reason{margin-top:2px;font-size:11px;font-weight:900;color:#b3395b}
 .skill-chosen{margin-top:2px;font-size:11px;font-weight:900;color:#167a5b}
 .skill-reveal-line{font-size:14px;margin-top:4px;color:#4a3863}
 .skill-hp-log{font-size:13px;margin-top:5px;color:#5a496e;font-weight:700}
+.catalog-sum{display:flex;align-items:center;gap:8px}
+.catalog-icon{width:28px;height:28px;flex:0 0 28px;display:block}
+/* Move selection elastic charge & breathing glow */
+.move.move-pop{animation:move-charge .36s cubic-bezier(.34,1.56,.64,1)}
+@keyframes move-charge{0%{transform:scale(1)}32%{transform:scale(.88)}68%{transform:scale(1.12) translateY(-3px)}100%{transform:scale(1.03) translateY(-2px)}}
+.move.move-rock.selected{background:linear-gradient(160deg,#fff2bf 0 42%,#ffcf70 42% 100%);box-shadow:0 4px 0 var(--ink),0 0 0 3px #ff9b42,0 0 18px rgba(255,155,66,.7);animation:move-breathe-rock 1.8s ease-in-out infinite}
+.move.move-scissors.selected{background:linear-gradient(160deg,#dcf9ff 0 42%,#93e5ff 42% 100%);box-shadow:0 4px 0 var(--ink),0 0 0 3px #35d4ff,0 0 18px rgba(53,212,255,.7);animation:move-breathe-scissors 1.8s ease-in-out infinite}
+.move.move-paper.selected{background:linear-gradient(160deg,#f5e8ff 0 42%,#d5b2ff 42% 100%);box-shadow:0 4px 0 var(--ink),0 0 0 3px #b07aff,0 0 18px rgba(176,122,255,.7);animation:move-breathe-paper 1.8s ease-in-out infinite}
+.move.move-rock.selected.move-pop{animation:move-charge .36s cubic-bezier(.34,1.56,.64,1),move-breathe-rock 1.8s .36s ease-in-out infinite}
+.move.move-scissors.selected.move-pop{animation:move-charge .36s cubic-bezier(.34,1.56,.64,1),move-breathe-scissors 1.8s .36s ease-in-out infinite}
+.move.move-paper.selected.move-pop{animation:move-charge .36s cubic-bezier(.34,1.56,.64,1),move-breathe-paper 1.8s .36s ease-in-out infinite}
+@keyframes move-breathe-rock{0%,100%{box-shadow:0 4px 0 var(--ink),0 0 0 3px #ff9b42,0 0 12px rgba(255,155,66,.5)}50%{box-shadow:0 4px 0 var(--ink),0 0 0 4px #ffb75e,0 0 22px rgba(255,155,66,.9)}}
+@keyframes move-breathe-scissors{0%,100%{box-shadow:0 4px 0 var(--ink),0 0 0 3px #35d4ff,0 0 12px rgba(53,212,255,.5)}50%{box-shadow:0 4px 0 var(--ink),0 0 0 4px #75e8ff,0 0 22px rgba(53,212,255,.9)}}
+@keyframes move-breathe-paper{0%,100%{box-shadow:0 4px 0 var(--ink),0 0 0 3px #b07aff,0 0 12px rgba(176,122,255,.5)}50%{box-shadow:0 4px 0 var(--ink),0 0 0 4px #d1a6ff,0 0 22px rgba(176,122,255,.9)}}
+body.sky-fallback .skill-card.selected,body.sky-fallback .skill-card.card-flip-in,body.sky-fallback .move.selected{animation:none!important}
+body.sky-fallback .skill-card.selected{transform:translateY(-6px)}
+@media(prefers-reduced-motion:reduce){.skill-card.selected,.skill-card.card-flip-in,.skill-card.card-drop-out,.move.selected,.move.move-pop{animation:none!important}.skill-card.selected{transform:translateY(-4px)}}
 @media(max-width:400px){.skill-hand-grid{grid-template-columns:1fr}}

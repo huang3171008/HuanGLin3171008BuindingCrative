@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<defs>
+  <linearGradient id="bg-07_brace_charge" x1="15%" y1="8%" x2="85%" y2="92%"><stop offset="0%" stop-color="#63c8fa"/><stop offset="100%" stop-color="#2d6bc9"/></linearGradient>
+  <linearGradient id="ic-07_brace_charge" x1="20%" y1="0%" x2="80%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#bfeaff"/></linearGradient>
+  <clipPath id="cp-07_brace_charge"><polygon points="64,9 112,36 112,92 64,119 16,92 16,36" stroke-linejoin="round"/></clipPath>
+</defs>
+<g transform="translate(0,4)" fill="#3d3155" opacity="0.28"><polygon points="64,9 112,36 112,92 64,119 16,92 16,36" stroke-linejoin="round"/></g>
+<g fill="url(#bg-07_brace_charge)" stroke="#3d3155" stroke-width="5.5" stroke-linejoin="round"><polygon points="64,9 112,36 112,92 64,119 16,92 16,36" stroke-linejoin="round"/></g>
+<g clip-path="url(#cp-07_brace_charge)">
+  <path d="M-12,72 L76,-16 L98,-16 L10,72 Z" fill="#ffffff" opacity="0.24"/>
+  <path d="M22,86 L102,6 L112,6 L32,86 Z" fill="#ffffff" opacity="0.15"/>
+  <ellipse cx="64" cy="112" rx="56" ry="22" fill="#3d3155" opacity="0.22"/>
+</g>
+<polygon points="64,17 104,40 104,88 64,111 24,88 24,40" fill="none" stroke="#d4f4ff" stroke-width="2.6" opacity="0.72" stroke-linejoin="round"/>
+<g transform="translate(26,26) scale(0.1484375)">
+  <path d="M92.656 19.188v41.5h331.72v-41.5H92.655zM119.5 79.374V433.53h22.28V79.376H119.5zm46.594 0c3.212 43.324 13.312 82.022 27.78 110.906 17.685 35.304 40.845 54.75 64.064 54.75 23.218 0 46.346-19.446 64.03-54.75 14.47-28.883 24.57-67.58 27.782-110.905H166.094zm209.156 0V433.53h22.28V79.376h-22.28zm-117.313 185.22c-23.218 0-46.378 19.415-64.062 54.717-14.835 29.614-25.098 69.562-28.03 114.22H350c-2.933-44.658-13.197-84.606-28.03-114.22-17.686-35.302-40.814-54.718-64.033-54.718zM92.657 452.218v41.467h331.718V452.22H92.655z" fill="url(#ic-07_brace_charge)" stroke="#3d3155" stroke-width="26" stroke-linejoin="round" stroke-linecap="round" paint-order="stroke fill"/>
+</g>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<defs>
+  <linearGradient id="bg-10_heal_talisman" x1="15%" y1="8%" x2="85%" y2="92%"><stop offset="0%" stop-color="#50e39e"/><stop offset="100%" stop-color="#168f68"/></linearGradient>
+  <linearGradient id="ic-10_heal_talisman" x1="20%" y1="0%" x2="80%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#c9ffe8"/></linearGradient>
+  <clipPath id="cp-10_heal_talisman"><circle cx="64" cy="64" r="54"/></clipPath>
+</defs>
+<g transform="translate(0,4)" fill="#3d3155" opacity="0.28"><circle cx="64" cy="64" r="54"/></g>
+<g fill="url(#bg-10_heal_talisman)" stroke="#3d3155" stroke-width="5.5" stroke-linejoin="round"><circle cx="64" cy="64" r="54"/></g>
+<g clip-path="url(#cp-10_heal_talisman)">
+  <path d="M-12,72 L76,-16 L98,-16 L10,72 Z" fill="#ffffff" opacity="0.24"/>
+  <path d="M22,86 L102,6 L112,6 L32,86 Z" fill="#ffffff" opacity="0.15"/>
+  <ellipse cx="64" cy="112" rx="56" ry="22" fill="#3d3155" opacity="0.22"/>
+</g>
+<circle cx="64" cy="64" r="46" fill="none" stroke="#d8ffd4" stroke-width="3" opacity="0.72"/>
+<g transform="translate(26,26) scale(0.1484375)">
+  <path d="M146.47 21.594c-19.843.39-40.255 13.992-46.94 38.937-36.28-36.277-90.65-8.066-79 41.595 11.826 50.403 99.55 64.537 114.25 90 0-32.133 66.5-82.522 54.19-135.125-5.728-24.468-23.862-35.773-42.5-35.406zM237 154.47c-35.243.73-68.834 22.932-79.688 69.31C133.202 326.807 263.438 425.5 263.438 488.44c28.8-49.877 200.592-77.563 223.75-176.282 22.82-97.274-83.624-152.5-154.687-81.437-13.49-50.343-55.558-77.08-95.5-76.25z" fill="url(#ic-10_heal_talisman)" stroke="#3d3155" stroke-width="26" stroke-linejoin="round" stroke-linecap="round" paint-order="stroke fill"/>
+</g>
+</svg>

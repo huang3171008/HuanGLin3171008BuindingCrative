@@ -42,3 +42,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - 新增《Flowerbed Fields》：Zane Little Music，[OpenGameArt](https://opengameart.org/content/flowerbed-fields-loop)，CC0；从 OGG 转为 `flowerbed.mp3`。
 - 胜利、落败、金币音效：Kenney 的 [51 UI sound effects](https://opengameart.org/content/51-ui-sound-effects-buttons-switches-and-clicks)，CC0；`switch15.wav`、`switch24.wav`、`switch38.wav` 转码。
 - 两首旧音乐已从本版本移除，既有用户的选择迁移到对应新曲。
+
+## 技能卡图标素材（Game-icons.net · CC BY 3.0）
+
+`shared-web/assets/skills/`（同步至 Android、Windows、iOS）中的 16 张技能卡矢量图标轮廓源自 **[Game-icons.net](https://game-icons.net/)**（官方仓库 [game-icons/icons](https://github.com/game-icons/icons)），采用 **[Creative Commons Attribution 3.0 Unported (CC BY 3.0)](https://creativecommons.org/licenses/by/3.0/)** 许可。本项目对原始黑白单色 SVG 轮廓进行了赛璐璐徽章化二次加工（添加双色渐变底托、深紫描边、斜切硬边高光与流派外框）。逐卡作者与原始链接如下：
+
+| 技能卡 | 文件 | 原图标 | 作者 | 原始页面与许可 |
+| --- | --- | --- | --- | --- |
+| 烈焰重拳 | `01_flame_punch.svg` | `fire-punch` | Lorc | https://game-icons.net/1x1/lorc/fire-punch.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 双星连击 | `02_twin_strike.svg` | `lightning-saber` | Lorc | https://game-icons.net/1x1/lorc/lightning-saber.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 破盾陨星 | `03_meteor_break.svg` | `burning-meteor` | Lorc | https://game-icons.net/1x1/lorc/burning-meteor.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 疾风偷袭 | `04_gale_ambush.svg` | `wind-slap` | Lorc | https://game-icons.net/1x1/lorc/wind-slap.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 圣光壁垒 | `05_holy_barrier.svg` | `checked-shield` | Lorc | https://game-icons.net/1x1/lorc/checked-shield.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 镜面反弹 | `06_mirror_reflect.svg` | `shield-reflect` | Lorc | https://game-icons.net/1x1/lorc/shield-reflect.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 蓄势待发 | `07_brace_charge.svg` | `hourglass` | Lorc | https://game-icons.net/1x1/lorc/hourglass.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 铁壁反震 | `08_iron_counter.svg` | `lightning-shield` | Lorc | https://game-icons.net/1x1/lorc/lightning-shield.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 元气甘露 | `09_vitality_nectar.svg` | `heart-bottle` | Lorc | https://game-icons.net/1x1/lorc/heart-bottle.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 治愈护符 | `10_heal_talisman.svg` | `charm` | Lorc | https://game-icons.net/1x1/lorc/charm.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 灵动抽牌 | `11_nimble_draw.svg` | `card-draw` | Faithtoken | https://game-icons.net/1x1/faithtoken/card-draw.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 能量虹吸 | `12_energy_siphon.svg` | `energise` | Lorc | https://game-icons.net/1x1/lorc/energise.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 毒雾飞镖 | `13_venom_dart.svg` | `poison-gas` | Lorc | https://game-icons.net/1x1/lorc/poison-gas.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 命运封印 | `14_fate_seal.svg` | `padlock` | Lorc | https://game-icons.net/1x1/lorc/padlock.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 逆转天平 | `15_tip_scales.svg` | `scales` | Lorc | https://game-icons.net/1x1/lorc/scales.html (CC BY 3.0，已加赛璐璐徽章加工) |
+| 幻影置换 | `16_phantom_swap.svg` | `card-exchange` | Delapouite | https://game-icons.net/1x1/delapouite/card-exchange.html (CC BY 3.0，已加赛璐璐徽章加工) |
+
+## 粒子特效架构说明
+
+`shared-web/assets/pixelfx.js` 为本项目自主编写的零依赖 Canvas 2D 双缓冲像素粒子模块（`color` 像素层 + `lighter` 发光层），设计理念参照 [patch-gg/pixelfx](https://github.com/patch-gg/pixelfx) 的像素渲染规范，未直接引入外部二进制/字体包，在低画质与 `prefers-reduced-motion` 模式下自动降级关闭。

@@ -6,8 +6,9 @@ const patterns=[...java.matchAll(/path\.matches\("([^"\n]+)"\)/g)].map(m=>m[1].r
 const literals=[...java.matchAll(/"(\/assets\/[^"\n]+)"\.equals\(path\)/g)].map(m=>m[1]);
 if(!patterns.length)throw Error('无法读取 Android 资源规则');
 const allowed=path=>literals.includes(path)||patterns.some(pattern=>new RegExp(pattern).test(path));
-const html=readFileSync('assets/index.html','utf8'),audio=readFileSync('assets/assets/audio-manager.js','utf8');
-const required=[...[...html.matchAll(/<script\s+src="(\/assets\/[^"]+)"/g)].map(m=>m[1]),...[...audio.matchAll(/['"](\/assets\/(?:music|sfx)\/[^'"]+\.mp3)['"]/g)].map(m=>m[1])];
+const html=readFileSync('assets/index.html','utf8'),audio=readFileSync('assets/assets/audio-manager.js','utf8'),engine=readFileSync('assets/assets/engine.js','utf8');
+const skillSvgs=[...engine.matchAll(/id:\s*'([0-9]{2}_[a-z_]+)'/g)].map(m=>`/assets/skills/${m[1]}.svg`);
+const required=[...[...html.matchAll(/<script\s+src="(\/assets\/[^"]+)"/g)].map(m=>m[1]),...[...audio.matchAll(/['"](\/assets\/(?:music|sfx)\/[^'"]+\.mp3)['"]/g)].map(m=>m[1]),...skillSvgs];
 for(const path of required){if(!allowed(path))throw Error('Android 资源规则拦截了 '+path);try{readFileSync('assets'+path)}catch{throw Error('Android 资源不存在 '+path)}}
 const source=readFileSync('test-peer.mjs','utf8'),start=source.indexOf('try{const [u1,u2]'),end=source.indexOf('}finally{for(const p of processes)',start);
 if(start<0||end<0)throw Error('无法读取浏览器测试环境');

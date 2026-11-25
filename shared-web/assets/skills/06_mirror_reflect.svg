@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+<defs>
+  <linearGradient id="bg-06_mirror_reflect" x1="15%" y1="8%" x2="85%" y2="92%"><stop offset="0%" stop-color="#63c8fa"/><stop offset="100%" stop-color="#2d6bc9"/></linearGradient>
+  <linearGradient id="ic-06_mirror_reflect" x1="20%" y1="0%" x2="80%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#bfeaff"/></linearGradient>
+  <clipPath id="cp-06_mirror_reflect"><polygon points="64,9 112,36 112,92 64,119 16,92 16,36" stroke-linejoin="round"/></clipPath>
+</defs>
+<g transform="translate(0,4)" fill="#3d3155" opacity="0.28"><polygon points="64,9 112,36 112,92 64,119 16,92 16,36" stroke-linejoin="round"/></g>
+<g fill="url(#bg-06_mirror_reflect)" stroke="#3d3155" stroke-width="5.5" stroke-linejoin="round"><polygon points="64,9 112,36 112,92 64,119 16,92 16,36" stroke-linejoin="round"/></g>
+<g clip-path="url(#cp-06_mirror_reflect)">
+  <path d="M-12,72 L76,-16 L98,-16 L10,72 Z" fill="#ffffff" opacity="0.24"/>
+  <path d="M22,86 L102,6 L112,6 L32,86 Z" fill="#ffffff" opacity="0.15"/>
+  <ellipse cx="64" cy="112" rx="56" ry="22" fill="#3d3155" opacity="0.22"/>
+</g>
+<polygon points="64,17 104,40 104,88 64,111 24,88 24,40" fill="none" stroke="#d4f4ff" stroke-width="2.6" opacity="0.72" stroke-linejoin="round"/>
+<g transform="translate(26,26) scale(0.1484375)">
+  <path d="M19.36 19.457l-.38 27.84 267.127 154.75-58.703 19.916 57.602 19.36L142.12 383.546l-19.214-19.213-51.47 114.324 123.125-43.482-17.492-18.95 151.868-151.87 12.433 43.078 22.976-68.5 56.675-16.565-57.475-15.492-22.934-79.828-14.145 48.266-268.65-155.41-38.454-.446zM370.614 81.94c-4.53.02-9.035.12-13.51.302-3.275.134-6.528.32-9.76.547l31.25 108.786 104.05 28.045c6.204-39.085 8.902-80.275 9.18-120.075C456.37 88.82 415.098 82.257 375.15 81.95c-1.514-.012-3.027-.015-4.537-.01zm-36.87 2.1c-31.99 3.653-61.013 12.153-83.014 25.87l64.493 37.31 18.52-63.18zm148.18 139.997L378.958 254.13l-38.93 116.054-20.268-70.225-39.07 39.067c18.814 35.364 46.1 62.287 86.175 77.604 47.473-17.834 78.566-62.795 98.014-121.6 7.323-22.14 12.905-46.11 17.042-70.993z" fill="url(#ic-06_mirror_reflect)" stroke="#3d3155" stroke-width="26" stroke-linejoin="round" stroke-linecap="round" paint-order="stroke fill"/>
+</g>
+</svg>
