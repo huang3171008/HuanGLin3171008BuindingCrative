@@ -1,5 +1,5 @@
 /* Offline practice runs the same rules as peer play, with a separate wallet.
-   The bot plans from revealed history before either side's next submission. */
+   The bot plans from revealed history and its own sanitized hand before submission. */
 window.AIPractice=(()=>{
  const KEY='practice_wallet_v1', HISTORY='practice_history_v1';
  const hands=['rock','scissors','paper'], defeats={rock:'paper',scissors:'rock',paper:'scissors'};
@@ -18,8 +18,40 @@ window.AIPractice=(()=>{
   const total=Object.values(weights).reduce((a,b)=>a+b,0);let n=rand()*total;
   for(const h of hands){n-=weights[h];if(n<0)return defeats[h]}return pick(hands);
  }
+ function chooseSkillCard(bot,human,r){
+  const penalty=bot.sealCost>0?1:0;
+  const playable=bot.hand.filter(id=>(SKILL_MAP[id]?.cost||99)+penalty<=bot.energy&&(id!=='16_phantom_swap'||bot.hand.length>=2));
+  if(!playable.length)return null;
+  if(ai.difficulty==='easy')return rand()<.5?null:pick(playable);
+  const scoreCard=id=>{
+   let v=10;const needHeal=120-bot.hp,danger=human.streak>=2||bot.hp<=38,late=r.round>=8;
+   if(id==='01_flame_punch')v=26+(human.hp<=44?14:0);
+   else if(id==='02_twin_strike')v=24+(bot.streak===0?8:0);
+   else if(id==='03_meteor_break')v=34+(human.hp<=46?20:0);
+   else if(id==='04_gale_ambush')v=20+(human.hp<=30?10:0);
+   else if(id==='05_holy_barrier')v=16+(danger?16:0);
+   else if(id==='06_mirror_reflect')v=20+(danger?15:0);
+   else if(id==='07_brace_charge')v=bot.energy<=2&&bot.hand.length<=3?24:10;
+   else if(id==='08_iron_counter')v=20+(bot.energy<=3&&r.round<10?8:0)+(danger?8:0);
+   else if(id==='09_vitality_nectar')v=needHeal>=24?30:needHeal>=12?16:2;
+   else if(id==='10_heal_talisman')v=needHeal>=12?23:14;
+   else if(id==='11_nimble_draw')v=bot.hand.length<=2?28:18;
+   else if(id==='12_energy_siphon')v=(needHeal>=10?25:15)+(bot.energy<=3?7:0);
+   else if(id==='13_venom_dart')v=human.poison===0&&r.round<=8?27:(human.poison===1&&r.round<=8?14:4);
+   else if(id==='14_fate_seal')v=r.round<10?25:12;
+   else if(id==='15_tip_scales')v=22+(danger?18:0);
+   else if(id==='16_phantom_swap')v=bot.hand.length<=2?22:15;
+   if(penalty>0)v-=6;
+   return v+rand()*(ai.difficulty==='hard'?5:12);
+  };
+  if(ai.difficulty==='normal'&&rand()<.28&&bot.energy<5&&r.round<9)return null;
+  const ranked=playable.map(id=>({id,s:scoreCard(id)})).sort((a,b)=>b.s-a.s);
+  if(ai.difficulty==='hard'&&ranked[0].s<15&&bot.energy<4&&r.round<9)return null;
+  return ranked[0].id;
+ }
  function makePlan(){
   const s=sanitize(world,'bot'),r=s.room,bot=r.players.find(p=>p.isMe),human=r.players.find(p=>!p.isMe);
+  if(r.variant==='skill')return {move:historyMove(),card:chooseSkillCard(bot,human,r)};
   let tier=10,stake=10;
   if(r.mode==='normal'){
    if(ai.difficulty!=='easy'&&r.round>3&&rand()<.45)tier=20;
@@ -32,7 +64,7 @@ window.AIPractice=(()=>{
  }
  function schedule(){
   const r=sanitize(world,'human').room;if(!r||r.phase==='finished'||timer)return;
-  const me=r.players.find(p=>p.isMe),other=r.players.find(p=>!p.isMe);
+  const other=r.players.find(p=>!p.isMe);
   if(r.phase==='move'&&!other.ready){plan=makePlan();ai.thinking=true;const current=++epoch;render();timer=setTimeout(()=>{timer=null;if(!ai.active||current!==epoch)return;try{mutate(world,'bot',{action:'move',...plan,round:r.round},Date.now());ai.thinking=false;afterChange()}catch(e){ai.thinking=false;note('陪练无法继续：'+e.message)}},500+Math.floor(rand()*701))}
   else if(r.phase==='guess'&&!other.guessed){ai.thinking=true;const current=++epoch;render();timer=setTimeout(()=>{timer=null;if(!ai.active||current!==epoch)return;try{mutate(world,'bot',{action:'guess',guess:plan.guess,round:r.round},Date.now());ai.thinking=false;afterChange()}catch(e){ai.thinking=false;note('陪练无法继续：'+e.message)}},500+Math.floor(rand()*701))}
  }
@@ -48,7 +80,7 @@ window.AIPractice=(()=>{
   normal:['稳了','别出石头','猜猜我出啥','好厉害','再来一局'],
   hard:['看穿你了','稳了','别出石头','这把必胜','再来一局']
  };
- ai.rematch=async function(){if(rematching||!ai.active||state?.room?.phase!=='finished')return;const currentMode=state.room.mode;if(state.wallet<(currentMode==='normal'?100:30)){note('练习金币不足，请返回大厅后重置练习钱包');return}rematching=true;try{const leaving=ai.action('leave'),expected=epoch;if(!await leaving)return;if(ai.active&&epoch===expected&&!state?.room)await ai.action('create',{mode:currentMode})}finally{rematching=false}};
+ ai.rematch=async function(){if(rematching||!ai.active||state?.room?.phase!=='finished')return;const currentMode=state.room.mode,currentVariant=state.room.variant||'classic';if(currentVariant!=='skill'&&state.wallet<(currentMode==='normal'?100:30)){note('练习金币不足，请返回大厅后重置练习钱包');return}rematching=true;try{const leaving=ai.action('leave'),expected=epoch;if(!await leaving)return;if(ai.active&&epoch===expected&&!state?.room)await ai.action('create',{mode:currentMode,variant:currentVariant})}finally{rematching=false}};
  ai.replyEmote=function(playerText){if(!ai.active||!state?.room?.hasOpponent)return;const roomCode=state.room.code,pool=EMOTE_REPLIES[ai.difficulty]||EMOTE_REPLIES.easy;const reply=playerText==='快点呀'?'马上就好！':pick(pool);setTimeout(()=>{if(ai.active&&state?.room?.code===roomCode&&typeof window.receivePracticeEmote==='function')window.receivePracticeEmote(reply)},650+Math.floor(rand()*550))};
  ai.wallet=wallet;return ai;
 })();

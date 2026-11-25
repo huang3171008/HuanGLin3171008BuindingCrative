@@ -4,10 +4,10 @@
 
 ## 1. 项目概况
 - **项目名称**：`猜拳小擂台 (Huang-Lin1008 Guessing)`
-- **当前分支 / 基线**：`codex/cloud-room-prototype-20261124`（已同步 Codex `v4.6.0` 六位云房间码版本到本地 Git 仓库）
-- **最后更新时间**：`2026-11-25 10:08`
-- **最后经手 AI**：Antigravity（已完成 Codex v4.6 源码回流与基线验证，准备推进 v4.6 普通模式「技能对战」升级）
-- **架构简介**：一核三端猜拳游戏（普通模式 10 回合 / 竞猜手势 / 竞猜输赢 + 单人 AI 陪练）。前端统一在 `shared-web/` 维护，经 `node sync-shared.mjs` 同步至 `android/assets/`、`desktop/app-assets/`、`ios/GuessingArena/web/`；联机支持公网 6 位房间码云服务（`game/cloud-server.mjs`，协议 2）与局域网 WebRTC 直连（房主权威）。
+- **当前分支 / 基线**：`codex/cloud-room-prototype-20261124`（已完成 `v4.6` 普通模式「技能对战」全链路功能升级与本机自测，暂未引入外部图标与重度特效）
+- **最后更新时间**：`2026-11-25 10:36`
+- **最后经手 AI**：Antigravity
+- **架构简介**：一核三端猜拳游戏（普通模式【经典金币规则 / 免费技能规则】、竞猜手势、竞猜输赢 + 单人 AI 陪练）。前端统一在 `shared-web/` 维护，经 `node sync-shared.mjs` 同步至 `android/assets/`、`desktop/app-assets/`、`ios/GuessingArena/web/`；联机支持公网 6 位房间码云服务（`game/cloud-server.mjs`，`protocol: 2` + `rulesVersion: 2`）与局域网 WebRTC 直连（房主权威）。
 
 ## 2. 本机运行、同步与测试命令（换端直接跑）
 
@@ -17,48 +17,52 @@
   cd "d:\Gemini 创作\猜拳小擂台"
   node sync-shared.mjs
   ```
-- **核心引擎与玩法自检**：
+- **核心引擎与技能规则自检**：
   ```powershell
   cd "d:\Gemini 创作\猜拳小擂台"
   node test-modes.mjs
+  node test-skill-mode.mjs
   ```
-- **云端房间服务（协议 2 · 6 位码）测试与启动**（默认 `http://127.0.0.1:3100`，`/healthz`，`/ws`）：
+- **云端房间服务（含经典与技能模式）测试与启动**（默认 `http://127.0.0.1:3100`，`/healthz`，`/ws`）：
   ```powershell
   cd "d:\Gemini 创作\猜拳小擂台\game"
-  npm ci --ignore-scripts
   node test-cloud.mjs
   node cloud-server.mjs
   ```
-- **多端浏览器自动化测试**（按需）：
+- **多端无头浏览器集成测试**：
   ```powershell
   cd "d:\Gemini 创作\猜拳小擂台\android"
   node test-ai.mjs
   node test-cloud-ui.mjs
   node test-peer.mjs
+  node test-android-asset-policy.mjs
+  node test-extras.mjs
+  node test-music.mjs
+  node test-v45-integration.mjs
+  ```
+- **公网服务器 SSH 连通检查**（密钥位于本机外部 `D:\创作\server-ssh\guess-arena-ed25519`，严禁入库）：
+  ```powershell
+  ssh -i "D:\创作\server-ssh\guess-arena-ed25519" -o UserKnownHostsFile="D:\创作\server-ssh\known_hosts" -o StrictHostKeyChecking=yes root@64.83.48.200 "systemctl is-active guess-arena-cloud.service guess-arena-caddy.service && curl -fsS http://127.0.0.1:3100/healthz"
   ```
 
-## 3. 当前已完成进度与最新基线
+## 3. 当前已完成进度
 
-### 已完成节点
-- [x] **v4.6.0 同步入库**：已将 `D:\创作\猜拳-6位房间码工作区` 中的 v4.6 源码、文档、测试及 `普通模式技能升级提示词.md` 同步至本共享仓库（保留 `MainActivity.java` 动态包名分享修复，未纳入任何私钥、数据库或打包产物）。
-- [x] **v4.6 基线回归通过**：
-  - `node sync-shared.mjs`：开源素材就绪，已同步至 Android / Windows / iOS。
-  - `node test-modes.mjs`：普通模式 9 种手势、竞猜手势 81 种、竞猜输赢 36 种、旧回合保护与 10 回合最终结算全部通过。
-  - `cd game && node test-cloud.mjs`：协议 2 认证/拒绝协议 1、每日领取幂等、6 位房间码、公开搜索、快捷表情、保密、断线重连、三种模式、再来一局与重启持久化全部通过。
-- [x] 已完整研读 `shared-web/` 核心模块与 `game/cloud-server.mjs`、测试脚手架，梳理出「普通模式技能对战」的变更与风险清单。
+- [x] **公网服务器 SSH 连通验证**：已读取 `D:\创作\server-ssh\guess-arena-ed25519.pub`（`guess-arena-deploy`）并连接 `root@64.83.48.200`，确认 `guess-arena-cloud.service` 与 `guess-arena-caddy.service` 均 `active`，`/healthz` 正常，且未改动线上运行态。
+- [x] **普通模式「技能对战」一核三端内容实现（图标与特效美化暂未改动）**：
+  - `shared-web/assets/engine.js`：实现 `variant: 'classic' | 'skill'`、120 HP、初始 2/上限 5 能量、16 张首版技能卡独立洗牌抽弃牌（手牌上限 4）、提交即扣能且对对手完全隐藏手牌与能量差、同时结算（直接伤害/减伤/破盾/反伤→已有中毒/回复/能量/封印/抽牌→统一扣血回血与同时归零判平），免费不触碰钱包金币。
+  - `game/cloud-server.mjs` & `shared-web/assets/cloud-client.js`：保持 `protocol: 2` 向后兼容并增加 `rulesVersion: 2` 能力保护（旧客户端仍可玩经典模式，尝试创建/加入技能房时提示升级，搜索列表对旧端自动过滤技能房）；技能房跳过金币账本写入，支持断线重连、服务重启持久化与再来一局重置。
+  - `shared-web/assets/p2p.js` & `shared-web/assets/ai-bot.js`：支持局域网技能对战及简单/普通/困难三档 AI 预决策出卡与再来一局。
+  - `shared-web/index.html`、`enhance.css`、`enhance.js`、`extras.js`：完成经典/技能规则切换、双端生命条与状态标签（连胜/中毒/封印）、手牌选择（含费用、不可用原因、无障碍标签与 `Q/W/E/R` + `1/2/3` 快捷键）、16 卡图鉴与逐卡教程、账本隔离及技能战绩卡适配，并经 `node sync-shared.mjs` 同步至 Android / Windows / iOS。
+  - `game/deploy/upgrade-skill-mode.sh`：编写线上 SQLite 在线备份 + `engine.js` 与 `cloud-server.mjs` 双文件原子替换及失败自动回滚脚本。
+- [x] **全套 9 项本机自动化测试 100% 通过**：`test-modes.mjs`、`test-skill-mode.mjs`（含 48 分支与 600 局模拟）、`game/test-cloud.mjs`、`android/test-ai.mjs`、`android/test-cloud-ui.mjs`、`android/test-peer.mjs`、`test-android-asset-policy.mjs`、`test-extras.mjs`、`test-music.mjs`、`test-v45-integration.mjs`。
 
 ## 4. 正在进行 / 下一步待办（按优先级）
-1. [ ] **确认是否将 v4.6 基线推送至 GitHub**（`codex/cloud-room-prototype-20261124`），并确认是否立刻开始实施「普通模式技能对战」（需求全文见 `普通模式技能升级提示词.md`）。
-2. [ ] **阶段一：技能对战权威引擎与自动测试**
-   - 涉及文件：`shared-web/assets/engine.js`（或拆出独立 `skill-engine.js` 由 `engine.js` 复用，需同步 `cloud-server.mjs` 加载方式）、新增 `test-skill-mode.mjs`（覆盖 16 张卡胜/负/平、边界、同时归零、非法操作与对局模拟）。
-3. [ ] **阶段二：云端协议扩展、AI 技能适配与局域网同步**
-   - 涉及文件：`game/cloud-server.mjs`、`game/test-cloud.mjs`、`shared-web/assets/cloud-client.js`、`shared-web/assets/p2p.js`、`shared-web/assets/ai-bot.js`。
-4. [ ] **阶段三：三端共享界面、特效素材与游戏内教程**
-   - 涉及文件：`shared-web/index.html`、`shared-web/assets/enhance.css`、`shared-web/assets/enhance.js`、`shared-web/assets/extras.js`、`THIRD_PARTY_NOTICES.md`，执行 `node sync-shared.mjs` 同步并跑全量回归（含 `test-modes.mjs`、`game/test-cloud.mjs`、`android/test-ai.mjs`、`android/test-cloud-ui.mjs`）。
-5. [ ] **后续运维与跨端真机验证**（有环境时推进）：服务器 SQLite 定期备份与恢复演练、证书续期观察、Windows×Android 跨设备联机、iOS Xcode 构建与真机测试。
+1. [ ] **线上部署确认（待用户指令）**：使用 `game/deploy/upgrade-skill-mode.sh` 将新版 `engine.js` 与 `cloud-server.mjs` 备份部署至 `root@64.83.48.200`（`/opt/guess-arena-cloud`），并跑公网 WSS 冒烟验证。
+2. [ ] **三端客户端打包与真机验证**（有环境时推进）：重新构建 Android APK 与 Windows Electron 包，在两台真机上实测技能模式（局域网 & 6 位云房间）；iOS 工程待 Mac + Xcode 构建验证。
+3. [ ] **第二阶段视觉与内容扩展（待用户开启）**：技能卡图标（如 Game-icons.net 逐一署名引入）与粒子/动效美化；真人试玩平衡首版 16 张技能卡数值。
+4. [ ] **GitHub 远端同步（待用户确认）**：确认是否将本地已提交的 v4.6 与技能对战分支推送至 GitHub。
 
 ## 5. 踩坑记录与红线提醒
-- `shared-web/` 是唯一前端真源，改完必须运行 `node sync-shared.mjs`；注意 `game/cloud-server.mjs` 第 22 行目前读取的是 `../android/assets/assets/engine.js`，未同步会导致服务端跑旧引擎。
-- 技能模式**绝对不能**读写钱包金币（免费进入、不扣/不奖金币、不写 `ledger`），且必须保持经典普通/竞猜模式 100% 回归兼容。
-- 协议兼容红线：当前云房间协议为 `2`，扩展技能模式时必须有明确规则版本/能力协商或错误提示，确保旧版客户端不能误进技能房，且旧房间与金币数据不被静默清空。
+- `shared-web/` 修改后必须先运行 `node sync-shared.mjs`，因为 `game/cloud-server.mjs` 直接加载 `../android/assets/assets/engine.js`。
+- 向 `64.83.48.200` 升级服务端时必须**同时**备份并更新 `/opt/guess-arena-cloud/android/assets/assets/engine.js` 与 `/opt/guess-arena-cloud/game/cloud-server.mjs`（脚本 `game/deploy/upgrade-skill-mode.sh` 已封装此逻辑）。
 - 严禁将 `D:\创作\server-ssh\` 私钥、`android/signing/`、密钥密码、设备凭证或 `*.sqlite` 提交到 Git 仓库。

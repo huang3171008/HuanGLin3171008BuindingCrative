@@ -19,9 +19,9 @@ CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY,player TEXT NOT NULL,e
 CREATE TABLE IF NOT EXISTS ledger(player TEXT NOT NULL,match_id TEXT NOT NULL,round INTEGER NOT NULL,mode TEXT NOT NULL,delta INTEGER NOT NULL,balance INTEGER NOT NULL,details TEXT NOT NULL,created INTEGER NOT NULL,PRIMARY KEY(player,match_id,round));
 `);
 const context=vm.createContext({crypto:webcrypto});
-vm.runInContext(readFileSync(new URL('../android/assets/assets/engine.js',import.meta.url),'utf8')+'\nthis.engine={mutate,sanitize};',context);
-const {mutate,sanitize}=context.engine;
-const sockets=new Map(),limits=new Map();
+vm.runInContext(readFileSync(new URL('../android/assets/assets/engine.js',import.meta.url),'utf8')+'\nthis.engine={mutate,sanitize,resetSkillRoom};',context);
+const {mutate,sanitize,resetSkillRoom}=context.engine;
+const sockets=new Map(),clientRules=new Map(),limits=new Map();
 const hash=x=>createHash('sha256').update(x).digest('hex');
 const load=()=>JSON.parse(db.prepare('SELECT data FROM world WHERE id=1').get().data);
 const save=w=>db.prepare('UPDATE world SET data=? WHERE id=1').run(JSON.stringify(w));
@@ -33,7 +33,7 @@ setInterval(()=>{const t=now();for(const [k,v] of limits)if(t-v.start>120000)lim
 function session(player){const token=randomBytes(32).toString('base64url');db.prepare('INSERT INTO sessions VALUES(?,?,?)').run(hash(token),player,now()+15*60*1000);return token}
 function send(ws,value){if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify(value))}
 function snapshot(world,id){const s=sanitize(world,id);if(!s.room)return s;const r=world.rooms[s.room.code];s.room.matchId=r.matchId;s.room.score=r.score||[0,0];s.room.lobbyReady=r.players.map(p=>!!r.lobbyReady?.[p.id]);s.room.replayReady=r.players.map(p=>!!r.replayReady?.[p.id]);s.room.online=r.players.map(p=>sockets.has(p.id));s.room.host=r.players[0]?.id===id;return s}
-function broadcast(world,ids){for(const id of new Set(ids)){const ws=sockets.get(id);if(ws&&world.players[id])send(ws,{type:'state',state:snapshot(world,id)})}}
+function broadcast(world,ids){for(const id of new Set(ids)){const ws=sockets.get(id);if(!ws||!world.players[id])continue;const r=world.rooms[world.players[id].room];if(r?.variant==='skill'&&(clientRules.get(id)||1)<2){send(ws,{type:'error',id:null,message:'当前房间为技能对战，请更新应用后继续'});continue}send(ws,{type:'state',state:snapshot(world,id)})}}
 function roomPlayers(w,id){const r=w.rooms[w.players[id]?.room];return r?r.players.map(p=>p.id):[id]}
 function pruneCodes(w){const keep=new Set(Object.keys(w.rooms));for(const row of db.prepare('SELECT code FROM codes').all())if(!keep.has(row.code))db.prepare('DELETE FROM codes WHERE code=?').run(row.code)}
 function newCode(){for(let i=0;i<100;i++){const code=String(randomInt(1000000)).padStart(6,'0');try{db.prepare('INSERT INTO codes(code) VALUES(?)').run(code);return code}catch(e){if(!String(e.message).includes('UNIQUE'))throw e}}throw Error('房间较多，请稍后重试')}
@@ -41,6 +41,7 @@ function operate(id,msg){
  if(!/^[a-f0-9-]{36}$/i.test(msg.id||''))throw Error('请求编号无效');
  if(!msg.data||typeof msg.data!=='object'||Array.isArray(msg.data))throw Error('请求格式错误');
  const action=msg.action,data=msg.data,allowed=['state','character','create','join','leave','ready','start','move','guess','replay','daily'];if(!allowed.includes(action))throw Error('无效操作');
+ const rv=clientRules.get(id)||1;
  const digest=hash(JSON.stringify({action,data}));
  return transaction(()=>{
   const previous=db.prepare('SELECT hash FROM operations WHERE player=? AND id=?').get(id,msg.id);
@@ -51,9 +52,13 @@ function operate(id,msg){
   if(action==='daily'){
    const player=w.players[id],stamp=now();if(player.room)throw Error('请先离开房间再领取');if(player.lastDaily&&stamp-player.lastDaily<86400000)throw Error('距离上次领取未满 24 小时');if(player.wallet>1e12-100)throw Error('金币余额已达上限');player.wallet+=100;player.lastDaily=stamp;db.prepare('INSERT INTO ledger VALUES(?,?,?,?,?,?,?,?)').run(id,'daily:'+randomUUID(),0,'daily',100,player.wallet,JSON.stringify([{label:'每日领取',delta:100}]),stamp);
   }else if(action==='create'){
-   mutate(w,id,{action,mode:data.mode},now());const old=w.players[id].room;room=w.rooms[old];const code=newCode();delete w.rooms[old];room.code=code;room.roomId=randomUUID();room.public=data.public===true;room.matchId=randomUUID();room.lobbyReady={};room.replayReady={};room.score=[0,0];w.rooms[code]=room;w.players[id].room=code;
+   const variant=data.variant===undefined?'classic':data.variant;
+   if(variant==='skill'&&rv<2)throw Error('请更新应用后再创建技能对战房间');
+   mutate(w,id,{action,mode:data.mode,variant},now());const old=w.players[id].room;room=w.rooms[old];const code=newCode();delete w.rooms[old];room.code=code;room.roomId=randomUUID();room.public=data.public===true;room.matchId=randomUUID();room.lobbyReady={};room.replayReady={};room.score=[0,0];w.rooms[code]=room;w.players[id].room=code;
   }else if(action==='join'){
    if(typeof data.code!=='string'||!/^\d{6}$/.test(data.code))throw Error('房间码应为6位数字');
+   const target=w.rooms[data.code];
+   if(target?.variant==='skill'&&rv<2)throw Error('该房间为技能对战，请更新应用后再加入');
    mutate(w,id,{action,code:data.code},now());room=w.rooms[data.code];room.phase='ready';room.lobbyReady={};
   }else if(action==='ready'){
    if(!room||room.phase!=='ready'||room.players.length!==2)throw Error('房间尚未准备');room.lobbyReady[id]=data.ready===true;room.updated=now();
@@ -61,10 +66,19 @@ function operate(id,msg){
    if(!room||room.phase!=='ready'||room.players[0].id!==id||room.players.length!==2||!room.players.every(p=>room.lobbyReady[p.id]))throw Error('请等待双方准备，再由房主开始');room.phase='move';room.updated=now();
   }else if(action==='replay'){
    if(!room||room.phase!=='finished')throw Error('当前对局尚未结束');room.replayReady[id]=true;room.updated=now();
-   if(room.players.every(p=>room.replayReady[p.id])){room.matchId=randomUUID();room.round=1;room.phase='ready';room.last=null;room.lobbyReady={};room.replayReady={};for(const p of room.players){p.net=0;p.high=0;p.move=null;p.guess=null;p.stake=null;p.tier=null}}
+   if(room.players.every(p=>room.replayReady[p.id])){room.matchId=randomUUID();room.round=1;room.phase='ready';room.last=null;room.lobbyReady={};room.replayReady={};if(room.variant==='skill')resetSkillRoom(room);else for(const p of room.players){p.net=0;p.high=0;p.move=null;p.guess=null;p.stake=null;p.tier=null}}
   }else if(action==='move'||action==='guess'){
-   const oldLast=room.last,balances=room.players.map(p=>w.players[p.id].wallet);mutate(w,id,{action,round:data.round,move:data.move,stake:data.stake,tier:data.tier,guess:data.guess},now());
-   if(room.last!==oldLast&&room.last){if(room.last.outcome===1)room.score[0]++;if(room.last.outcome===-1)room.score[1]++;for(let i=0;i<2;i++){const p=room.players[i],last=room.last,after=w.players[p.id].wallet;const details=room.mode==='normal'?[{label:'入场费',delta:-last.fees[i]},{label:'手势',delta:last.changes[i]+last.fees[i]},...(last.final?[{label:'最终结算',delta:last.final.bonus[i]}]:[])]:[{label:'手势',delta:last.handChanges[i]},{label:'竞猜',delta:last.guessChanges[i]}];if(!Number.isSafeInteger(after)||after<0||after>1e12)throw Error('金币余额超出允许范围');db.prepare('INSERT INTO ledger VALUES(?,?,?,?,?,?,?,?)').run(p.id,room.matchId,last.round,room.mode,after-balances[i],after,JSON.stringify(details),now())}}
+   if(room.variant==='skill'&&rv<2)throw Error('当前房间为技能对战，请更新应用');
+   const oldLast=room.last,balances=room.players.map(p=>w.players[p.id].wallet);mutate(w,id,{action,round:data.round,move:data.move,stake:data.stake,tier:data.tier,guess:data.guess,card:data.card},now());
+   if(room.last!==oldLast&&room.last){
+    if(room.variant==='skill'){
+     for(let i=0;i<2;i++)if(w.players[room.players[i].id].wallet!==balances[i])throw Error('技能对战不得修改金币余额');
+     if(room.last.outcome===1)room.score[0]++;if(room.last.outcome===-1)room.score[1]++;
+    }else{
+     if(room.last.outcome===1)room.score[0]++;if(room.last.outcome===-1)room.score[1]++;
+     for(let i=0;i<2;i++){const p=room.players[i],last=room.last,after=w.players[p.id].wallet;const details=room.mode==='normal'?[{label:'入场费',delta:-last.fees[i]},{label:'手势',delta:last.changes[i]+last.fees[i]},...(last.final?[{label:'最终结算',delta:last.final.bonus[i]}]:[])]:[{label:'手势',delta:last.handChanges[i]},{label:'竞猜',delta:last.guessChanges[i]}];if(!Number.isSafeInteger(after)||after<0||after>1e12)throw Error('金币余额超出允许范围');db.prepare('INSERT INTO ledger VALUES(?,?,?,?,?,?,?,?)').run(p.id,room.matchId,last.round,room.mode,after-balances[i],after,JSON.stringify(details),now())}
+    }
+   }
   }else if(action!=='state')mutate(w,id,{action,character:data.character},now());
   for(const pid of new Set([...before,...roomPlayers(w,id)])){const p=w.players[pid];if(p&&(!Number.isSafeInteger(p.wallet)||p.wallet<0||p.wallet>1e12))throw Error('金币余额超出允许范围');}
   if(room&&room.players.some(p=>!Number.isSafeInteger(p.net)||Math.abs(p.net)>1e12))throw Error('对局金币超出允许范围');
@@ -85,17 +99,17 @@ wss.on('connection',(ws,req)=>{let id=null,alive=true;const remote=clientIp(req)
    if(!player&&typeof msg.credential==='string'&&/^[a-f0-9]{64}$/.test(msg.credential))player=hash(msg.credential);
    if(!player)throw Error(msg.resume?'恢复凭证已失效，请重新认证':'身份凭证无效');
    transaction(()=>{const w=load();if(!w.players[player]&&Object.keys(w.players).length>=10000)throw Error('服务器玩家数已达上限');mutate(w,player,{action:'state'},now());save(w);db.prepare('DELETE FROM sessions WHERE player=? OR expires<?').run(player,now())});id=player;clearTimeout(deadline);
-   const old=sockets.get(id);sockets.set(id,ws);if(old&&old!==ws)old.close(4001,'连接已更新');send(ws,{type:'authenticated',resume:session(id),protocol:2});const w=load();broadcast(w,roomPlayers(w,id));return;
+   const old=sockets.get(id);sockets.set(id,ws);clientRules.set(id,msg.rulesVersion===2?2:1);if(old&&old!==ws)old.close(4001,'连接已更新');send(ws,{type:'authenticated',resume:session(id),protocol:2,rulesVersion:2});const w=load();broadcast(w,roomPlayers(w,id));return;
   }
   if(sockets.get(id)!==ws)throw Error('连接已更新');if(!limiter('player:'+id,100,10000))throw Error('操作过于频繁，请稍后再试');if(msg.type!=='action')throw Error('无效请求');
   if(msg.action==='emote'){const text=msg.data?.text,valid=['稳了','别出石头','快点呀','平局吧','好厉害','再来一局'];if(!valid.includes(text))throw Error('表情无效');if(!limiter('emote:'+id,8,10000))throw Error('表情发送过快');const w=load(),room=w.rooms[w.players[id]?.room];if(!room||room.players.length!==2)throw Error('需要先进入双人房间');for(const p of room.players)if(p.id!==id){const other=sockets.get(p.id);if(other)send(other,{type:'emote',text})}return}
   if(msg.action==='history'){const entries=db.prepare('SELECT round,mode,delta,balance,details,created FROM ledger WHERE player=? ORDER BY created DESC,rowid DESC LIMIT 100').all(id).map(x=>({...x,details:JSON.parse(x.details)}));send(ws,{type:'history',entries});return}
-  if(msg.action==='list'){if(!limiter('list:'+id,12,60000))throw Error('查询过于频繁，请稍后再试');const rooms=Object.values(load().rooms).filter(r=>r.public===true&&r.phase==='waiting'&&r.players.length===1&&now()-r.updated<86400000).slice(0,20).map(r=>({code:r.code,mode:r.mode}));send(ws,{type:'rooms',rooms});return}
+  if(msg.action==='list'){if(!limiter('list:'+id,12,60000))throw Error('查询过于频繁，请稍后再试');const rv=clientRules.get(id)||1;const rooms=Object.values(load().rooms).filter(r=>r.public===true&&r.phase==='waiting'&&r.players.length===1&&now()-r.updated<86400000&&(rv>=2||r.variant!=='skill')).slice(0,20).map(r=>({code:r.code,mode:r.mode,variant:r.variant||'classic'}));send(ws,{type:'rooms',rooms});return}
   if(msg.action==='join'&&(!limiter('join:'+id,12,60000)||!limiter('join-ip:'+remote,60,60000)))throw Error('查询过于频繁，请稍后再试');
   const result=operate(id,msg);send(ws,{type:'ack',id:msg.id,duplicate:result.duplicate});broadcast(result.world,result.affected);
   const room=result.world.rooms[result.world.players[id]?.room];if(room&&['create','join','start','move','guess'].includes(msg.action)&&!result.duplicate)console.log(JSON.stringify({event:msg.action,roomId:room.roomId,round:room.round,phase:room.phase}));
  }catch(e){send(ws,{type:'error',id:typeof msg?.id==='string'?msg.id:null,message:e.message||'操作失败'})}});
- ws.on('close',()=>{clearTimeout(deadline);clearInterval(heartbeat);if(id&&sockets.get(id)===ws){sockets.delete(id);const w=load();if(w.players[id])broadcast(w,roomPlayers(w,id))}});
+ ws.on('close',()=>{clearTimeout(deadline);clearInterval(heartbeat);if(id&&sockets.get(id)===ws){sockets.delete(id);clientRules.delete(id);const w=load();if(w.players[id])broadcast(w,roomPlayers(w,id))}});
  ws.on('error',()=>{});
 });
 const port=Number(process.env.PORT||3100),host=process.env.HOST||'127.0.0.1';

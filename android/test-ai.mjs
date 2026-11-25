@@ -20,6 +20,20 @@ for(const [difficulty,mode] of [['easy','normal'],['normal','guessMove'],['hard'
  await a.eval("api('leave')");assert.equal(await a.eval('state.room'),null);
 }
 assert.equal(await a.eval('readHistory().length'),12);assert.equal(await a.eval("JSON.parse(localStorage.getItem('direct_coin_history_v1')||'[]').length"),0);
-await a.eval('AIPractice.stop()');assert.equal(await a.eval('state.wallet'),4321);console.log('通过：三档陪练及三种玩法，十回合与独立钱包、账本隔离。');a.ws.close();
+const walletBeforeSkill=await a.eval('state.wallet');
+for(const diff of ['easy','normal','hard']){
+ await a.eval('AIPractice.stop()');await a.eval(\`AIPractice.start('\${diff}')\`);
+ await a.eval("setMode('normal');setVariant('skill');createRoom()");
+ assert.equal(await a.eval('state.room.variant'),'skill');
+ while(await a.eval("state.room.phase!=='finished'")){
+  const r=await a.eval('state.room.round');
+  await a.eval("(()=>{const me=state.room.players.find(p=>p.isMe),pen=me.sealCost>0?1:0,c=me.hand.find(id=>(SKILL_MAP[id].cost+pen)<=me.energy&&(id!=='16_phantom_swap'||me.hand.length>=2));if(c)toggleSkillCard(c);selectMove('rock');sendMove()})()");
+  await until(async()=>await a.eval(\`state.room.phase==='finished'||state.room.round>\${r}\`),'技能陪练回合未完成');
+ }
+ assert.equal(await a.eval('state.wallet'),walletBeforeSkill,'技能陪练不得修改练习钱包');
+ assert.equal(await a.eval('readHistory().length'),12,'技能陪练不得写入金币账本');
+ await a.eval("api('leave')");
+}
+await a.eval('AIPractice.stop()');assert.equal(await a.eval('state.wallet'),4321);console.log('通过：三档陪练及三种经典玩法+技能对战，十回合与独立钱包、账本隔离。');a.ws.close();
 `;
 const generated='test-ai-generated.mjs';try{writeFileSync(generated,source.slice(0,start)+scenario+source.slice(end));const r=spawnSync(process.execPath,[generated],{stdio:'inherit'});process.exitCode=r.status??1}finally{try{unlinkSync(generated)}catch{}}
