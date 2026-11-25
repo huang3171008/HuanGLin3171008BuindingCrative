@@ -4,10 +4,10 @@
 
 ## 1. 项目概况
 - **项目名称**：`猜拳小擂台 (Huang-Lin1008 Guessing)`
-- **当前分支 / 基线**：`codex/cloud-room-prototype-20261124`（已完成 `v4.6` 普通模式「技能对战」全链路功能升级与本机自测，暂未引入外部图标与重度特效）
-- **最后更新时间**：`2026-11-25 10:36`
+- **当前分支 / 基线**：`codex/cloud-room-prototype-20261124`（`v4.6` 普通模式「技能对战」已完成一核三端功能开发、双联机模式复测，并**已正式上线公网服务器 `64.83.48.200:8443`**）
+- **最后更新时间**：`2026-11-25 10:45`
 - **最后经手 AI**：Antigravity
-- **架构简介**：一核三端猜拳游戏（普通模式【经典金币规则 / 免费技能规则】、竞猜手势、竞猜输赢 + 单人 AI 陪练）。前端统一在 `shared-web/` 维护，经 `node sync-shared.mjs` 同步至 `android/assets/`、`desktop/app-assets/`、`ios/GuessingArena/web/`；联机支持公网 6 位房间码云服务（`game/cloud-server.mjs`，`protocol: 2` + `rulesVersion: 2`）与局域网 WebRTC 直连（房主权威）。
+- **架构简介**：一核三端猜拳游戏（普通模式【经典金币规则 / 免费技能规则】、竞猜手势、竞猜输赢 + 单人 AI 陪练）。前端统一在 `shared-web/` 维护，经 `node sync-shared.mjs` 同步至 `android/assets/`、`desktop/app-assets/`、`ios/GuessingArena/web/`；**新技能模式与经典玩法均同时支持「6 位房间码服务器联机」与「同一 Wi-Fi / 热点局域网直连」两种联机方式**。
 
 ## 2. 本机运行、同步与测试命令（换端直接跑）
 
@@ -23,46 +23,42 @@
   node test-modes.mjs
   node test-skill-mode.mjs
   ```
-- **云端房间服务（含经典与技能模式）测试与启动**（默认 `http://127.0.0.1:3100`，`/healthz`，`/ws`）：
+- **云端房间服务本机测试与启动**（默认 `http://127.0.0.1:3100`，`/healthz`，`/ws`）：
   ```powershell
   cd "d:\Gemini 创作\猜拳小擂台\game"
   node test-cloud.mjs
   node cloud-server.mjs
   ```
-- **多端无头浏览器集成测试**：
+- **多端无头浏览器集成测试（含局域网与云房间技能对战）**：
   ```powershell
   cd "d:\Gemini 创作\猜拳小擂台\android"
-  node test-ai.mjs
-  node test-cloud-ui.mjs
   node test-peer.mjs
-  node test-android-asset-policy.mjs
-  node test-extras.mjs
-  node test-music.mjs
-  node test-v45-integration.mjs
+  node test-cloud-ui.mjs
+  node test-ai.mjs
   ```
-- **公网服务器 SSH 连通检查**（密钥位于本机外部 `D:\创作\server-ssh\guess-arena-ed25519`，严禁入库）：
+- **公网服务器 WSS 冒烟自检**（测试线上 `wss://64.83.48.200:8443/ws` 技能房 + 经典房 + 旧端拦截）：
   ```powershell
-  ssh -i "D:\创作\server-ssh\guess-arena-ed25519" -o UserKnownHostsFile="D:\创作\server-ssh\known_hosts" -o StrictHostKeyChecking=yes root@64.83.48.200 "systemctl is-active guess-arena-cloud.service guess-arena-caddy.service && curl -fsS http://127.0.0.1:3100/healthz"
+  cd "d:\Gemini 创作\猜拳小擂台"
+  node tools/diagnostics/public-smoke-skill.mjs
   ```
 
 ## 3. 当前已完成进度
 
-- [x] **公网服务器 SSH 连通验证**：已读取 `D:\创作\server-ssh\guess-arena-ed25519.pub`（`guess-arena-deploy`）并连接 `root@64.83.48.200`，确认 `guess-arena-cloud.service` 与 `guess-arena-caddy.service` 均 `active`，`/healthz` 正常，且未改动线上运行态。
-- [x] **普通模式「技能对战」一核三端内容实现（图标与特效美化暂未改动）**：
-  - `shared-web/assets/engine.js`：实现 `variant: 'classic' | 'skill'`、120 HP、初始 2/上限 5 能量、16 张首版技能卡独立洗牌抽弃牌（手牌上限 4）、提交即扣能且对对手完全隐藏手牌与能量差、同时结算（直接伤害/减伤/破盾/反伤→已有中毒/回复/能量/封印/抽牌→统一扣血回血与同时归零判平），免费不触碰钱包金币。
-  - `game/cloud-server.mjs` & `shared-web/assets/cloud-client.js`：保持 `protocol: 2` 向后兼容并增加 `rulesVersion: 2` 能力保护（旧客户端仍可玩经典模式，尝试创建/加入技能房时提示升级，搜索列表对旧端自动过滤技能房）；技能房跳过金币账本写入，支持断线重连、服务重启持久化与再来一局重置。
-  - `shared-web/assets/p2p.js` & `shared-web/assets/ai-bot.js`：支持局域网技能对战及简单/普通/困难三档 AI 预决策出卡与再来一局。
-  - `shared-web/index.html`、`enhance.css`、`enhance.js`、`extras.js`：完成经典/技能规则切换、双端生命条与状态标签（连胜/中毒/封印）、手牌选择（含费用、不可用原因、无障碍标签与 `Q/W/E/R` + `1/2/3` 快捷键）、16 卡图鉴与逐卡教程、账本隔离及技能战绩卡适配，并经 `node sync-shared.mjs` 同步至 Android / Windows / iOS。
-  - `game/deploy/upgrade-skill-mode.sh`：编写线上 SQLite 在线备份 + `engine.js` 与 `cloud-server.mjs` 双文件原子替换及失败自动回滚脚本。
-- [x] **全套 9 项本机自动化测试 100% 通过**：`test-modes.mjs`、`test-skill-mode.mjs`（含 48 分支与 600 局模拟）、`game/test-cloud.mjs`、`android/test-ai.mjs`、`android/test-cloud-ui.mjs`、`android/test-peer.mjs`、`test-android-asset-policy.mjs`、`test-extras.mjs`、`test-music.mjs`、`test-v45-integration.mjs`。
+- [x] **普通模式「技能对战」支持双联机模式 + AI 陪练**：
+  - **6 位房间码服务器联机（`cloud`）**：连接 `https://64.83.48.200:8443` 后，选「普通模式 → 技能规则」即可创建 6 位数字房间码（支持二维码与公开房间搜索），双方准备后服务端权威发牌、扣能与结算，结束支持再来一局。
+  - **同一 Wi-Fi / 热点局域网联机（`lan`）**：通过房主连接码建立 WebRTC 直连后，房主选「普通模式 → 技能规则」对方自动入房开战，结束支持房主一键「再来一局」（`p2pRematch`）或返回切换其他模式。
+  - **单人 AI 陪练**：简单 / 普通 / 困难三档 AI 完整支持技能规则与再来一局。
+- [x] **公网服务器备份部署与实网冒烟通过（`2026-11-25 10:44`）**：
+  - 已通过 `game/deploy/upgrade-skill-mode.sh` 对线上 `/var/lib/guess-arena-cloud/cloud.sqlite` 完成 SQLite 在线备份与 `PRAGMA integrity_check` 校验，快照保存在服务器 `/var/backups/guess-arena-cloud/before-skill-mode.MnuGbgqN`（含旧版 `engine.js`、`cloud-server.mjs` 与 `cloud.sqlite`）。
+  - 原子更新 `/opt/guess-arena-cloud/android/assets/assets/engine.js` 与 `game/cloud-server.mjs`，`guess-arena-cloud.service` 与 `guess-arena-caddy.service` 均 `active`。
+  - 运行 `node tools/diagnostics/public-smoke-skill.mjs` 实网 WSS 冒烟通过：6 位房间码技能对战发牌/保密/结算/零金币变动、经典金币模式结算、旧版客户端兼容与进入技能房升级提示全部正常。
 
 ## 4. 正在进行 / 下一步待办（按优先级）
-1. [ ] **线上部署确认（待用户指令）**：使用 `game/deploy/upgrade-skill-mode.sh` 将新版 `engine.js` 与 `cloud-server.mjs` 备份部署至 `root@64.83.48.200`（`/opt/guess-arena-cloud`），并跑公网 WSS 冒烟验证。
-2. [ ] **三端客户端打包与真机验证**（有环境时推进）：重新构建 Android APK 与 Windows Electron 包，在两台真机上实测技能模式（局域网 & 6 位云房间）；iOS 工程待 Mac + Xcode 构建验证。
-3. [ ] **第二阶段视觉与内容扩展（待用户开启）**：技能卡图标（如 Game-icons.net 逐一署名引入）与粒子/动效美化；真人试玩平衡首版 16 张技能卡数值。
-4. [ ] **GitHub 远端同步（待用户确认）**：确认是否将本地已提交的 v4.6 与技能对战分支推送至 GitHub。
+1. [ ] **重新打包客户端安装包（Android APK / Windows EXE）**：由于手机与桌面端界面内置在应用包内，需重新编译签名 APK（注意使用本机旧签名密钥覆盖安装以保留本地钱包与云端身份）及打包 Windows 桌面端，方可在实体设备上体验新技能模式。
+2. [ ] **第二阶段美化与体验打磨（待用户开启）**：技能卡专属图标（如 Game-icons.net 逐一核验署名打包）与出牌/结算粒子特效美化；根据真人试玩反馈微调 16 张技能卡数值。
+3. [ ] **运维与远端同步**：服务器配置定期自动备份任务；确认后将本地 Git 分支推送至 GitHub。
 
 ## 5. 踩坑记录与红线提醒
-- `shared-web/` 修改后必须先运行 `node sync-shared.mjs`，因为 `game/cloud-server.mjs` 直接加载 `../android/assets/assets/engine.js`。
-- 向 `64.83.48.200` 升级服务端时必须**同时**备份并更新 `/opt/guess-arena-cloud/android/assets/assets/engine.js` 与 `/opt/guess-arena-cloud/game/cloud-server.mjs`（脚本 `game/deploy/upgrade-skill-mode.sh` 已封装此逻辑）。
+- `shared-web/` 修改后必须先运行 `node sync-shared.mjs`，确保 `android/assets/assets/engine.js` 与 `shared-web` 一致。
+- 线上回滚方法：若需回滚服务器，可将 `/var/backups/guess-arena-cloud/before-skill-mode.MnuGbgqN/` 下的 `engine.js` 与 `cloud-server.mjs` 拷回 `/opt/guess-arena-cloud/` 对应路径并重启 `guess-arena-cloud.service`。
 - 严禁将 `D:\创作\server-ssh\` 私钥、`android/signing/`、密钥密码、设备凭证或 `*.sqlite` 提交到 Git 仓库。
